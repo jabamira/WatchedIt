@@ -22,7 +22,7 @@ router.beforeEach(async (to, from, next) => {
   const isAuthPage = to.path === "/Auth";
 
   try {
-    const res = await fetch("http://localhost:3000/me", {
+    const res = await fetch("https://turbo-space-funicular-pxwpjgwp6jrh6wwp-30002.app.github.dev/me", {
       credentials: "include",
     });
 
