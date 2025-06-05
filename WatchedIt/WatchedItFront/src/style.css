@@ -2,7 +2,11 @@
 @import "flowbite/src/themes/default";
 @plugin "flowbite/plugin";
 @source "../node_modules/flowbite";
-
+@media (prefers-color-scheme: light) {
+  button.bg-gray-900 {
+    background-color: #313233; /* цвет для gray-900 */
+  }
+}
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

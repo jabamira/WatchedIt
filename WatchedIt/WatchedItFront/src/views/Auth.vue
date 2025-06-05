@@ -1,30 +1,29 @@
 <template>
-  <!--
-    This example requires updating your template:
-
-    ```
-    <html class="h-full bg-white">
-    <body class="h-full">
-    ```
-  -->
   <div
     class="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8"
   >
-    <div class="sm:mx-auto sm:w-full sm:max-w-sm">
-      <h2
-        class="mt-10 text-center text-2xl/9 font-bold tracking-tight text-gray-900"
-      >
-        Sign in to your account
-      </h2>
+    <div
+      class="sm:mx-auto sm:w-full sm:max-w-sm flex flex-row items-end space-x-2 text-nowrap"
+    >
+      <h1 class="text-1xl font-medium text-gray-900 dark:text-white">
+        Sign in
+      </h1>
+      <h2 class="text-3xl font-bold text-indigo-500">to your account</h2>
     </div>
 
     <div class="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
       <form ref="formRef" @submit.prevent="clickAuth">
         <div>
-          <label for="email" class="block text-sm/6 font-medium text-gray-900">
-            <span v-if="!registration">Email addres or login</span>
-            <span v-else>Email addres</span></label
-          >
+          <div class="flex justify-start">
+            <label
+              for="email"
+              class="block text-sm/6 font-medium text-gray-900 dark:text-white"
+            >
+              <span v-if="!registration">Email addres or login</span>
+              <span v-else>Email addres</span></label
+            >
+          </div>
+
           <div class="mt-2">
             <input
               v-model="email"
@@ -50,7 +49,7 @@
               <div class="flex justify-start">
                 <label
                   for="login"
-                  class="block text-sm/6 font-medium text-gray-900"
+                  class="block text-sm/6 font-medium text-gray-950 dark:text-white"
                   >Login</label
                 >
               </div>
@@ -61,7 +60,7 @@
                   type="login"
                   autocomplete="login"
                   required=""
-                  class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                  class="block w-full rounded-md bg-white px-3 py-1.5 text-base text-gray-900 outline-2 -outline-offset-4 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
                 />
               </div>
             </div>
@@ -71,13 +70,13 @@
           <div class="flex items-center justify-between mt-1">
             <label
               for="password"
-              class="block text-sm/6 font-medium text-gray-900"
+              class="block text-sm/6 font-medium text-gray-900 dark:text-white"
               >Password</label
             >
             <div class="text-sm">
               <a
                 href="#"
-                class="font-semibold text-indigo-600 hover:text-indigo-500"
+                class="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-white"
                 >Forgot password?</a
               >
             </div>
@@ -105,7 +104,7 @@
               <div class="flex justify-start mt-2 text-sm">
                 <label
                   for="passwordConfirm"
-                  class="block text-sm/6 font-medium text-gray-900"
+                  class="block text-sm/6 font-medium text-gray-900 dark:text-white"
                 >
                   Confirm password
                 </label>
@@ -136,24 +135,16 @@
           </div>
         </div>
 
-        <div class="mt-6">
+        <div class="mt-6 flex justify-end">
           <button
             type="submit"
-            class="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            class="bg-gray-900 text-white px-4 py-2 rounded hover:bg-gray-600 transition"
           >
             <span v-if="!registration">Sign in</span>
             <span v-else>Sign up</span>
           </button>
         </div>
       </form>
-
-      <p class="mt-10 text-center text-sm/6 text-gray-500">
-        Not a member?
-        {{ " " }}
-        <a href="#" class="font-semibold text-indigo-600 hover:text-indigo-500"
-          >Start a 14 day free trial</a
-        >
-      </p>
     </div>
   </div>
 </template>
