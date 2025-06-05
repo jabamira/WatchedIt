@@ -1,106 +1,113 @@
-<script setup lang="ts">
-import { onMounted, onUnmounted, ref } from "vue";
-
-const dropdownOpen = ref(false);
-const dropdownButtonRef = ref<HTMLButtonElement | null>(null);
-const isChecked = ref(false);
-
-const toggleDropdown = () => {
-  dropdownOpen.value = !dropdownOpen.value;
-};
-
-const dropdownItems = ref([
-  { text: "Dashboard", href: "javascript:void(0)" },
-  { text: "Settings", href: "javascript:void(0)" },
-  { text: "Earnings", href: "javascript:void(0)" },
-  { text: "Logout", href: "javascript:void(0)" },
-]);
-
-const handleClickOutside = (event: MouseEvent) => {
-  if (
-    dropdownButtonRef.value &&
-    !dropdownButtonRef.value.contains(event.target as Node)
-  ) {
-    dropdownOpen.value = false;
-  }
-};
-
-onMounted(() => {
-  document.addEventListener("click", handleClickOutside);
-});
-
-onUnmounted(() => {
-  document.removeEventListener("click", handleClickOutside);
-});
-</script>
-
 <template>
-  <section class="pt-20 pb-10 lg:pt-[120px] lg:pb-20 dark:bg-dark">
-    <div class="container">
-      <div class="flex flex-wrap -mx-">
-        <!-- Dropdown -->
-        <div class="w-full px-4 sm:w-1/2 lg:w-1/4">
-          <div class="py-8 text-center">
-            <div class="relative inline-block mb-8 text-left">
-              <button
-                @click="toggleDropdown"
-                ref="dropdownButtonRef"
-                class="bg-primary flex items-center rounded-[5px] px-5 py-[13px] text-base font-medium text-white"
-              >
-                Dropdown Button
-                <span class="pl-4">
-                  <svg
-                    width="20"
-                    height="20"
-                    viewBox="0 0 20 20"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                    class="fill-current"
-                  >
-                    <path
-                      d="M10 14.25C9.8125 14.25 9.65625 14.1875 9.5 14.0625L2.3125 7C2.03125 6.71875 2.03125 6.28125 2.3125 6C2.59375 5.71875 3.03125 5.71875 3.3125 6L10 12.5312L16.6875 5.9375C16.9688 5.65625 17.4063 5.65625 17.6875 5.9375C17.9687 6.21875 17.9687 6.65625 17.6875 6.9375L10.5 14C10.3437 14.1563 10.1875 14.25 10 14.25Z"
-                    />
-                  </svg>
-                </span>
-              </button>
-              <div
-                v-show="dropdownOpen"
-                class="shadow-1 dark:shadow-box-dark absolute left-0 z-40 mt-2 w-full rounded-md bg-white dark:bg-dark-2 py-[10px] transition-all"
-                :class="{
-                  'top-full opacity-100 visible': dropdownOpen,
-                  'top-[110%] invisible opacity-0': !dropdownOpen,
-                }"
-              >
-                <template v-for="(item, index) in dropdownItems" :key="index">
-                  <a
-                    v-if="item.href"
-                    :href="item.href"
-                    class="text-body-color dark:text-dark-6 hover:bg-[#F5F7FD] dark:hover:bg-primary/5 hover:text-primary block px-5 py-2 text-base"
-                  >
-                    {{ item.text }}
-                  </a>
-                </template>
-              </div>
-            </div>
-          </div>
-        </div>
-        <!-- End -->
-        <!-- Checkbox -->
-        <div class="flex items-center justify-center">
-          <input
-            id="checkbox1"
-            type="checkbox"
-            v-model="isChecked"
-            class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-          />
-          <label
-            for="checkbox1"
-            class="ms-2 text-sm font-medium text-gray-400 dark:text-gray-500"
+  <div>
+    <div class="flex justify-center p-4">
+      <button
+        id="button"
+        data-modal-toggle="modal"
+        data-modal-target="modal"
+        type="button"
+        class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800"
+      >
+        Show modal
+      </button>
+    </div>
+
+    <div
+      id="modal"
+      tabindex="-1"
+      aria-hidden="true"
+      class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full"
+    >
+      <div class="relative w-full max-w-2xl max-h-full">
+        <!-- Modal content -->
+        <div class="relative bg-white rounded-lg shadow-sm dark:bg-gray-700">
+          <!-- Modal header -->
+          <div
+            class="flex items-start justify-between p-5 border-b rounded-t dark:border-gray-600"
           >
-            Checkbox with v-model: {{ isChecked }}
-          </label>
+            <h3
+              class="text-xl font-semibold text-gray-900 lg:text-2xl dark:text-white"
+            >
+              Terms of Service
+            </h3>
+            <button
+              id="closeButton"
+              data-modal-hide="modal"
+              type="button"
+              class="text-gray-400 bg-transparent hover:bg-gray-200 hover:text-gray-900 rounded-lg text-sm p-1.5 ml-auto inline-flex items-center dark:hover:bg-gray-600 dark:hover:text-white"
+            >
+              <svg
+                class="w-5 h-5"
+                fill="currentColor"
+                viewBox="0 0 20 20"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fill-rule="evenodd"
+                  d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                  clip-rule="evenodd"
+                ></path>
+              </svg>
+            </button>
+          </div>
+          <!-- Modal body -->
+          <div class="p-6 space-y-6">
+            <p
+              class="text-base leading-relaxed text-gray-500 dark:text-gray-400"
+            >
+              With less than a month to go before the European Union enacts new
+              consumer privacy laws for its citizens, companies around the world
+              are updating their terms of service agreements to comply.
+            </p>
+            <p
+              class="text-base leading-relaxed text-gray-500 dark:text-gray-400"
+            >
+              The European Union’s General Data Protection Regulation (G.D.P.R.)
+              goes into effect on May 25 and is meant to ensure a common set of
+              data rights in the European Union. It requires organizations to
+              notify users as soon as possible of high-risk data breaches that
+              could personally affect them.
+            </p>
+          </div>
+          <!-- Modal footer -->
+          <div
+            class="flex items-center p-6 space-x-2 border-t border-gray-200 rounded-b dark:border-gray-600"
+          >
+            <button
+              type="button"
+              class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+            >
+              I accept
+            </button>
+            <button
+              type="button"
+              class="text-gray-500 bg-white hover:bg-gray-100 focus:ring-4 focus:outline-none focus:ring-blue-300 rounded-lg border border-gray-200 text-sm font-medium px-5 py-2.5 hover:text-gray-900 focus:z-10 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-500 dark:hover:text-white dark:hover:bg-gray-600"
+            >
+              Decline
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </section>
+  </div>
 </template>
+<script setup>
+import { onMounted } from "vue";
+import { Modal } from "flowbite";
+
+onMounted(() => {
+  const $buttonElement = document.querySelector("#button");
+  const $modalElement = document.querySelector("#modal");
+  const $closeButton = document.querySelector("#closeButton");
+
+  const modalOptions = {
+    backdropClasses: "bg-gray-900/50 dark:bg-gray-900/80 fixed inset-0 z-40",
+  };
+
+  if ($modalElement) {
+    const modal = new Modal($modalElement, modalOptions);
+    $buttonElement.addEventListener("click", () => modal.toggle());
+    $closeButton.addEventListener("click", () => modal.hide());
+  }
+});
+</script>

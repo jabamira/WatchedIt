@@ -175,22 +175,20 @@ export default {
     async handleLogin() {
       try {
         const response = await axios.post(
-    "https://turbo-space-funicular-pxwpjgwp6jrh6wwp-30002.app.github.dev/auth",
-    {
-      email: this.email,
-      password: this.password,
-    },
-    {
-      withCredentials: true,
-      headers: {
-        "Content-Type": "application/json",
-      },
-    }
-  );
-  console.log(response.data);
+          "http://localhost:3000/auth",
+          {
+            email: this.email,
+            password: this.password,
+          },
+          {
+            withCredentials: true,
+          }
+        );
+
+        console.log(response.data);
 
         if (response.data.success) {
-          const res = await fetch("https://turbo-space-funicular-pxwpjgwp6jrh6wwp-30002.app.github.dev/me", {
+          const res = await fetch("http://localhost:3000/me", {
             credentials: "include",
           });
 
@@ -212,7 +210,7 @@ export default {
     },
     async handleRegister() {
       try {
-        const response = await axios.post("https://turbo-space-funicular-pxwpjgwp6jrh6wwp-30002.app.github.dev/register", {
+        const response = await axios.post("http://localhost:3000/register", {
           email: this.email,
           login: this.login,
           password: this.password,
