@@ -76,7 +76,7 @@
             <div class="text-sm">
               <a
                 href="#"
-                class="font-semibold text-indigo-600 hover:text-indigo-500 dark:text-white"
+                class="font-semibold text-indigo-600 hover:text-indigo-500"
                 >Forgot password?</a
               >
             </div>
@@ -161,6 +161,14 @@ export default {
       registration: false,
       passwordConfirm: "",
     };
+  },
+  mounted() {
+    const params = new URLSearchParams(window.location.search);
+    const mode = params.get("mode");
+
+    if (mode === "signup") {
+      this.registration = true;
+    }
   },
   methods: {
     async handleLogin() {
