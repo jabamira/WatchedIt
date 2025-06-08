@@ -1,11 +1,11 @@
 <template>
   <div
-    class="flex min-h-full flex-1 flex-col justify-center px-6 py-12 lg:px-8"
+    class="flex w-screen h-screen flex-col pt-18 justify-center px-6 py-12 lg:px-8"
   >
     <div
-      class="sm:mx-auto sm:w-full sm:max-w-sm flex flex-row items-end space-x-2 text-nowrap"
+      class="sm:mx-auto sm:w-full sm:max-w-sm flex flex-row items-baseline justify-center space-x-2 whitespace-nowrap"
     >
-      <h1 class="text-1xl font-medium text-gray-900 dark:text-white">
+      <h1 class="text-4xl font-medium text-gray-900 dark:text-white">
         Sign in
       </h1>
       <h2 class="text-3xl font-bold text-indigo-500">to your account</h2>
@@ -163,11 +163,16 @@ export default {
     };
   },
   mounted() {
-    const params = new URLSearchParams(window.location.search);
+    const hash = window.location.hash; // "#/Auth?mode=signup"
+    const queryString = hash.split("?")[1]; // "mode=signup"
+    const params = new URLSearchParams(queryString);
     const mode = params.get("mode");
-
+    console.log(mode);
     if (mode === "signup") {
       this.registration = true;
+    }
+    if (mode === "login") {
+      this.registration = false;
     }
   },
   methods: {

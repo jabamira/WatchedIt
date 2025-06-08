@@ -1,6 +1,14 @@
 <template>
-  <router-view> </router-view>
+  <HeaderComponent />
+  <router-view />
 </template>
-<script></script>
 
-<style></style>
+<script>
+import HeaderComponent from "./components/HeaderComponent.vue";
+
+export default {
+  components: {
+    HeaderComponent,
+  },
+};
+</script>

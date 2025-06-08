@@ -2,11 +2,13 @@
 @import "flowbite/src/themes/default";
 @plugin "flowbite/plugin";
 @source "../node_modules/flowbite";
+@config "../tailwind.config.js";
 @media (prefers-color-scheme: light) {
   button.bg-gray-900 {
     background-color: #313233; /* цвет для gray-900 */
   }
 }
+html,
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
@@ -28,7 +30,7 @@
   @apply hover:text-indigo-500 bg-indigo-400 dark:hover:bg-gray-50 hover:bg-slate-800 focus:ring-4 focus:ring-gray-300 font-medium rounded-lg text-sm px-4 py-2 md:px-5 md:py-2.5 transition-colors duration-300;
 }
 .link {
-  @apply text-gray-800 hover:text-indigo-600 dark:text-white transition-colors duration-100;
+  @apply font-sans text-gray-800 hover:text-indigo-600 dark:text-white transition-colors duration-100;
 }
 .link-gray {
   @apply text-gray-700 dark:text-gray-300 hover:text-indigo-600  transition-colors duration-100;
