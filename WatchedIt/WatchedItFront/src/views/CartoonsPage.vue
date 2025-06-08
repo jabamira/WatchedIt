@@ -1,4 +1,4 @@
-<template></template>
+<template>Cartoons</template>
 
 <script setup>
 import { ref, onMounted } from "vue";

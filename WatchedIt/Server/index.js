@@ -19,7 +19,6 @@ app.use(
 );
 
 app.use("/auth", authRoutes);
-app.use("/register", registerRoutes);
 app.use("/me", meRoute);
 const sequelize = require("./db");
 const User = require("./models/User");

@@ -1,4 +1,4 @@
-<template></template>
+<template>Serials</template>
 
 <script setup>
 import { ref, onMounted } from "vue";

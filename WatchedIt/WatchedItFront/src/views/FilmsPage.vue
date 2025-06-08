@@ -1,4 +1,4 @@
-<template></template>
+<template>Films</template>
 
 <script setup>
 import { ref, onMounted } from "vue";

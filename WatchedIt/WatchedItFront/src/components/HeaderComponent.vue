@@ -4,8 +4,8 @@
   >
     <!--logo для больших-->
     <a
-      href="http://localhost:5173/#/"
-      class="items-center space-x-3 ml-2 rtl:space-x-reverse hidden md:flex"
+      @click="nav.NavigateHome()"
+      class="items-center cursor-pointer space-x-3 ml-2 rtl:space-x-reverse hidden md:flex"
     >
       <svg xmlns="http://www.w3.org/2000/svg" width="210" viewBox="0 0 600 120">
         <path
@@ -38,11 +38,13 @@
         <div
           :class="[
             'flex-row gap-10 hidden justify-end md:flex md:order-3',
-            isAuthRoute ? 'md:mr-85' : '',
+            !authStore.isAuthenticated ? 'md:mr-85' : '',
           ]"
         >
-          <a href="#" class="link text-lg">Films</a>
-          <a href="#" class="link text-lg">Serials</a>
+          <a @click="nav.NavigateFilms()" class="link text-lg">Films</a>
+          <a @click="nav.NavigateSerials()" class="link text-lg">Serials</a>
+          <a @click="nav.NavigateAnime()" class="link text-lg">Anime</a>
+          <a @click="nav.NavigateCartoons()" class="link text-lg">Сartoons</a>
         </div>
         <!--лого для маленькой-->
         <a
@@ -78,11 +80,11 @@
           </svg>
         </a>
       </div>
-      <!--кнопки логина и кнопкамалеькая-->
+      <!--кнопки логина и профиль и кнопкамалеькая-->
       <div class="flex flex-row gap-3 md:order-2">
         <!--кнопки логина-->
         <div
-          v-if="!IsAuth && !isAuthRoute"
+          v-if="!authStore.isAuthenticated && !isAuthRoute"
           class="hidden xs:flex flex-row gap-3 md:order-2"
         >
           <a
@@ -99,7 +101,7 @@
         </div>
         <!--кнопки профиля-->
         <div
-          v-if="IsAuth"
+          v-if="authStore.isAuthenticated"
           class="flex flex-row gap-3 items-center mr-25 md:order-2"
         >
           <!-- Контейнер: Аватар + Ник -->
@@ -162,7 +164,7 @@
             </ul>
             <div class="py-1">
               <a
-                href="#"
+                @click="logout()"
                 class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
                 >Sign out</a
               >
@@ -268,7 +270,12 @@
 import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { computed } from "vue";
-const IsAuth = ref(false);
+import { useNavigation } from "../router/navigation.js";
+
+import { useAuthStore } from "../stores/auth";
+const authStore = useAuthStore();
+const nav = useNavigation();
+
 const router = useRouter();
 const route = useRoute();
 const isAuthRoute = computed(() => {
@@ -276,32 +283,14 @@ const isAuthRoute = computed(() => {
   return route.path === "/Auth";
 });
 
-const CheckAuth = async () => {
+async function logout() {
   try {
-    const res = await fetch("http://localhost:3000/me", {
-      credentials: "include",
-    });
-    return res.ok;
-  } catch (err) {
-    console.error("Ошибка при проверке авторизации:", err);
-    return false;
+    await authStore.logout();
+    router.push("/Auth");
+  } catch (error) {
+    console.error(error);
   }
-};
-
-onMounted(() => {
-  import("flowbite").then(({ initFlowbite }) => {
-    initFlowbite();
-  });
-
-  (async () => {
-    IsAuth.value = await CheckAuth();
-    console.log("Авторизован:", IsAuth.value);
-  })();
-});
-
-const perehodClicker = () => {
-  router.push("/Auth");
-};
+}
 </script>
 
 <style scoped></style>
