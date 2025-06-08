@@ -32,10 +32,6 @@ const User = sequelize.define("User", {
     type: DataTypes.BOOLEAN,
     defaultValue: true,
   },
-  verificationToken: {
-    type: DataTypes.STRING(100),
-    allowNull: true,
-  },
   lastOnlineAt: {
     type: DataTypes.DATE,
     allowNull: true,

@@ -2,8 +2,9 @@ const express = require("express");
 const app = express();
 
 const authRoutes = require("./routes/auth");
-const registerRoutes = require("./routes/register");
+
 const meRoute = require("./routes/me");
+const Services = require("./routes/services");
 
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
@@ -18,6 +19,7 @@ app.use(
   })
 );
 
+app.use("/services", Services);
 app.use("/auth", authRoutes);
 app.use("/me", meRoute);
 const sequelize = require("./db");

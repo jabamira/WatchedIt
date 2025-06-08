@@ -4,10 +4,6 @@ export const useAuthStore = defineStore("auth", {
   state: () => ({
     user: null,
     isAuthenticated: false,
-    email: "",
-    login: "",
-    password: "",
-    passwordConfirm: "",
     registration: false,
   }),
   actions: {
@@ -90,14 +86,6 @@ export const useAuthStore = defineStore("auth", {
         this.user = null;
         this.isAuthenticated = false;
       }
-    },
-
-    SwapAuthRegistr() {
-      this.registration = !this.registration;
-      this.email = "";
-      this.login = "";
-      this.password = "";
-      this.passwordConfirm = "";
     },
   },
 });

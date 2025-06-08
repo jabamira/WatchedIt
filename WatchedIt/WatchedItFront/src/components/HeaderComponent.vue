@@ -1,13 +1,13 @@
 <template>
   <nav
-    class="fixed top-0 bg-white border-gray-200 dark:bg-gray-800 flex flex-row left-0 w-full z-50"
+    class="fixed top-0 bg-white border-gray-200 border dark:border-1 dark:border-slate-700 dark:bg-gray-800 flex flex-row left-0 w-full z-50"
   >
     <!--logo для больших-->
     <a
       @click="nav.NavigateHome()"
       class="items-center cursor-pointer space-x-3 ml-2 rtl:space-x-reverse hidden md:flex"
     >
-      <svg xmlns="http://www.w3.org/2000/svg" width="210" viewBox="0 0 600 120">
+      <svg xmlns="http://www.w3.org/2000/svg" width="230" viewBox="0 0 700 120">
         <path
           fill-rule="evenodd"
           stroke="rgb(28, 47, 46)"
@@ -21,30 +21,32 @@
         <!-- Текст -->
         <text
           x="220"
-          y="80"
+          y="90"
           font-family="VAG World"
           font-weight="bold"
-          font-size="53"
+          font-size="93"
           class="fill-black dark:fill-white"
         >
           Watched It
         </text>
       </svg>
     </a>
+
     <!--весь нав бар-->
     <div class="flex flex-wrap items-center justify-between mx-auto p-4 w-full">
       <div class="flex flex-row items-center md:order-2 space-x-5 md:space-x-3">
         <!--разделы сверху-->
         <div
           :class="[
-            'flex-row gap-10 hidden justify-end md:flex md:order-3',
-            isAuthRoute ? 'md:mr-85' : '',
+            'flex-row gap-10 hidden justify-end md:flex mr-0 text-xl font-medium  md:order-3',
+            isAuthRoute ? 'md:mr-94' : '',
+            !authStore.isAuthenticated ? 'mr-45' : '',
           ]"
         >
-          <a @click="nav.NavigateFilms()" class="link text-lg">Films</a>
-          <a @click="nav.NavigateSerials()" class="link text-lg">Serials</a>
-          <a @click="nav.NavigateAnime()" class="link text-lg">Anime</a>
-          <a @click="nav.NavigateCartoons()" class="link text-lg">Сartoons</a>
+          <a @click="nav.NavigateFilms()" class="link">Films</a>
+          <a @click="nav.NavigateSerials()" class="link">Serials</a>
+          <a @click="nav.NavigateAnime()" class="link">Anime</a>
+          <a @click="nav.NavigateCartoons()" class="link">Сartoons</a>
         </div>
         <!--лого для маленькой-->
         <a
@@ -102,28 +104,29 @@
         <!--кнопки профиля-->
         <div
           v-if="authStore.isAuthenticated"
-          class="flex flex-row gap-3 items-center mr-25 md:order-2"
+          class="flex flex-row gap-3 items-center mr-52 md:order-2"
         >
           <!-- Контейнер: Аватар + Ник -->
           <div
-            class="flex items-center gap-2"
+            class="hidden lgg:flex items-center gap-2"
             data-dropdown-toggle="userDropdown"
             data-dropdown-placement="bottom-start"
           >
             <img
               id="avatarButton"
               type="button"
-              class="w-10 h-10 rounded-full cursor-pointer"
+              class="w-12 h-12 rounded-full cursor-pointer"
               src="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
               alt="User dropdown"
             />
             <div class="flex flex-col text-sm">
-              <span class="font-semibold text-gray-900 dark:text-white"
-                >Bonnie Green</span
-              >
-              <span class="text-gray-500 dark:text-gray-400 text-xs"
-                >name@flowbite.com</span
-              >
+              <span class="font-semibold text-gray-900 dark:text-white">
+                {{ authStore.user.user.login }}
+              </span>
+
+              <span class="text-gray-500 dark:text-gray-400 text-xs">
+                {{ authStore.user.user.email }}
+              </span>
             </div>
           </div>
 
@@ -205,7 +208,7 @@
             <button
               id="mega-menu-dropdown-button"
               data-dropdown-toggle="mega-menu-dropdown"
-              class="cursor-pointer items-center flex w-full py-2 px-3 font-medium border-b border-gray-100 md:w-auto hover:bg-gray-150 md:hover:bg-transparent md:border-0 md:hover:text-indigo-600 text-gray-800 hover:text-indigo-600 md:p-0 dark:text-white"
+              class="text-2xl font-medium cursor-pointer items-center flex w-full py-2 px-3 border-b border-gray-100 md:w-auto hover:bg-gray-150 md:hover:bg-transparent md:border-0 md:hover:text-indigo-600 text-gray-800 hover:text-indigo-600 md:p-0 dark:text-white"
             >
               HomePage
               <svg
@@ -226,11 +229,11 @@
             </button>
             <div
               id="mega-menu-dropdown"
-              class="absolute z-10 hidden grid-cols-1 text-sm dark:bg-gray-800 rounded-lg border border-gray-500 md:w-auto w-[80%] mx-auto"
+              class="absolute z-10 hidden grid-cols-1 text-sm dark:bg-gray-800 bg-gray-100 rounded-lg border border-gray-500 md:w-auto w-[80%] mx-auto"
             >
               <div class="p-4 pb-0">
                 <ul
-                  class="space-y-4 text-base"
+                  class="space-y-4 font-medium text-base"
                   aria-labelledby="mega-menu-dropdown-button"
                 >
                   <li><a href="#" class="link-gray">About Us</a></li>
@@ -240,7 +243,7 @@
                 </ul>
               </div>
               <div class="p-4 pb-0">
-                <ul class="space-y-4">
+                <ul class="space-y-4 font-medium text-base">
                   <li><a href="#" class="link-gray">Blog</a></li>
                   <li><a href="#" class="link-gray">Newsletter</a></li>
                   <li><a href="#" class="link-gray">Playground</a></li>
@@ -248,7 +251,7 @@
                 </ul>
               </div>
               <div class="p-4">
-                <ul class="space-y-4">
+                <ul class="space-y-4 font-medium text-base">
                   <li><a href="#" class="link-gray">Contact Us</a></li>
                   <li><a href="#" class="link-gray">Support Center</a></li>
                   <li><a href="#" class="link-gray">Terms</a></li>
@@ -267,6 +270,7 @@
 </template>
 
 <script setup>
+import { watch } from "vue";
 import { ref, onMounted } from "vue";
 import { useRouter, useRoute } from "vue-router";
 import { computed } from "vue";
@@ -274,8 +278,8 @@ import { useNavigation } from "../router/navigation.js";
 
 import { useAuthStore } from "../stores/auth";
 const authStore = useAuthStore();
-const nav = useNavigation();
 
+const nav = useNavigation();
 const router = useRouter();
 const route = useRoute();
 const isAuthRoute = computed(() => {

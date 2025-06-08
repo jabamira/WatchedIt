@@ -19,14 +19,13 @@
               for="email"
               class="block text-sm/6 font-medium text-gray-900 dark:text-white"
             >
-              <span v-if="!authStore.registration">Email addres or login</span>
-              <span v-else>Email addres</span>
+              <span v-if="registration">Email address or login</span>
+              <span v-else>Email address</span>
             </label>
           </div>
-
           <div class="mt-2">
             <input
-              v-model="authStore.email"
+              v-model="email"
               type="email"
               name="email"
               id="email"
@@ -45,7 +44,7 @@
           leave-from-class="opacity-100 max-h-40"
           leave-to-class="opacity-0 max-h-0"
         >
-          <div v-if="authStore.registration" class="overflow-hidden mt-1">
+          <div v-if="registration" class="overflow-hidden mt-1">
             <div>
               <div class="flex justify-start">
                 <label
@@ -54,10 +53,9 @@
                   >Login</label
                 >
               </div>
-
               <div class="mt-2">
                 <input
-                  v-model="authStore.login"
+                  v-model="login"
                   type="text"
                   autocomplete="login"
                   required
@@ -85,7 +83,7 @@
           </div>
           <div class="mt-2">
             <input
-              v-model="authStore.password"
+              v-model="password"
               type="password"
               name="password"
               id="password"
@@ -103,18 +101,18 @@
             leave-from-class="opacity-100 max-h-40"
             leave-to-class="opacity-0 max-h-0"
           >
-            <div v-if="authStore.registration" class="overflow-hidden">
+            <div v-if="registration" class="overflow-hidden">
               <div class="flex justify-start mt-2 text-sm">
                 <label
                   for="passwordConfirm"
                   class="block text-sm/6 font-medium text-gray-900 dark:text-white"
-                  >Confirm password</label
                 >
+                  Confirm password
+                </label>
               </div>
-
               <div class="mt-2">
                 <input
-                  v-model="authStore.passwordConfirm"
+                  v-model="passwordConfirm"
                   type="password"
                   name="passwordConfirm"
                   id="passwordConfirm"
@@ -129,10 +127,12 @@
 
           <div class="flex justify-end space-x-4 mt-4 text-sm">
             <a
-              @click.prevent="authStore.SwapAuthRegistr"
+              @click.prevent="SwapAuthRegistr"
               class="font-semibold text-indigo-600 hover:text-indigo-500"
             >
-              <span v-if="!authStore.registration">Not registered yet?</span>
+              <span class="cursor-pointer" v-if="!registration"
+                >Not registered yet?</span
+              >
               <span v-else>Go to login</span>
             </a>
           </div>
@@ -143,7 +143,7 @@
             type="submit"
             class="bg-gray-900 text-white px-4 py-2 rounded hover:bg-gray-600 transition"
           >
-            <span v-if="!authStore.registration">Sign in</span>
+            <span v-if="!registration">Sign in</span>
             <span v-else>Sign up</span>
           </button>
         </div>
@@ -155,25 +155,29 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import { useAuthStore } from "../stores/auth.js";
 import axios from "axios";
 
-const authStore = useAuthStore();
 const router = useRouter();
 const formRef = ref(null);
+
+// локальные переменные
+const email = ref("");
+const login = ref("");
+const password = ref("");
+const passwordConfirm = ref("");
+const registration = ref(false);
 
 onMounted(() => {
   const hash = window.location.hash;
   const queryString = hash.split("?")[1];
   const params = new URLSearchParams(queryString);
   const mode = params.get("mode");
-  if (mode === "signup") authStore.registration = true;
-  else if (mode === "login") authStore.registration = false;
+  registration.value = mode === "signup";
 });
 
 function validatePasswordConfirm(event) {
   const input = event.target;
-  if (authStore.password !== authStore.passwordConfirm) {
+  if (password.value !== passwordConfirm.value) {
     input.setCustomValidity("Пароли не совпадают");
   } else {
     input.setCustomValidity("");
@@ -185,8 +189,8 @@ async function handleLogin() {
     const response = await axios.post(
       "http://localhost:3000/auth/login",
       {
-        email: authStore.email,
-        password: authStore.password,
+        email: email.value,
+        password: password.value,
       },
       { withCredentials: true }
     );
@@ -214,9 +218,9 @@ async function handleLogin() {
 async function handleRegister() {
   try {
     const response = await axios.post("http://localhost:3000/auth/register", {
-      email: authStore.email,
-      login: authStore.login,
-      password: authStore.password,
+      email: email.value,
+      login: login.value,
+      password: password.value,
     });
 
     if (response.data.success) {
@@ -235,7 +239,11 @@ async function clickAuth() {
     formRef.value.reportValidity();
     return;
   }
-  if (authStore.registration) await handleRegister();
+  if (registration.value) await handleRegister();
   else await handleLogin();
+}
+
+function SwapAuthRegistr() {
+  registration.value = !registration.value;
 }
 </script>
