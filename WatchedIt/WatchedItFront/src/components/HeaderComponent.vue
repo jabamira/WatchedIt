@@ -38,7 +38,7 @@
         <div
           :class="[
             'flex-row gap-10 hidden justify-end md:flex md:order-3',
-            !authStore.isAuthenticated ? 'md:mr-85' : '',
+            isAuthRoute ? 'md:mr-85' : '',
           ]"
         >
           <a @click="nav.NavigateFilms()" class="link text-lg">Films</a>
