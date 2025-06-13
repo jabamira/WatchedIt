@@ -38,7 +38,7 @@
         <!--разделы сверху-->
         <div
           :class="[
-            'flex-row gap-10 hidden justify-end md:flex mr-0 text-xl font-medium  md:order-3',
+            'flex-row gap-10 hidden cursor-pointer justify-end md:flex mr-0 text-xl font-medium  md:order-3',
             isAuthRoute ? 'md:mr-94' : '',
             !authStore.isAuthenticated ? 'mr-45' : '',
           ]"
@@ -104,21 +104,22 @@
         <!--кнопки профиля-->
         <div
           v-if="authStore.isAuthenticated"
-          class="flex flex-row gap-3 items-center mr-52 md:order-2"
+          class="flex flex-row gap-3 w-19 items-center mr-52 md:order-2"
         >
           <!-- Контейнер: Аватар + Ник -->
           <div
-            class="hidden lgg:flex items-center gap-2"
+            class="hidden lgg:flex items-center gap-2 my--4"
             data-dropdown-toggle="userDropdown"
             data-dropdown-placement="bottom-start"
           >
             <img
               id="avatarButton"
               type="button"
-              class="w-12 h-12 rounded-full cursor-pointer"
+              class="h-12 rounded-full cursor-pointer w-full"
               src="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
               alt="User dropdown"
             />
+
             <div class="flex flex-col text-sm">
               <span class="font-semibold text-gray-900 dark:text-white">
                 {{ authStore.user.user.login }}

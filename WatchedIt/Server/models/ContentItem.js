@@ -14,6 +14,12 @@ const ContentItem = sequelize.define("ContentItem", {
   year: {
     type: DataTypes.STRING,
   },
+  country: {
+    type: DataTypes.STRING,
+  },
+  genre: {
+    type: DataTypes.STRING,
+  },
   posterUrl: {
     type: DataTypes.STRING,
   },

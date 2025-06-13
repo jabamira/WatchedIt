@@ -28,6 +28,8 @@ async function cacheMovieByTitle(title) {
       year: data.Year,
       posterUrl: data.Poster,
       plot: data.Plot,
+      genre: data.Genre,
+      country: data.Country,
       imdbRating: parseFloat(data.imdbRating),
     });
 
@@ -38,7 +40,11 @@ async function cacheMovieByTitle(title) {
     return null;
   }
 }
-async function cacheMoviesBySearch(title) {
+async function cacheMoviesBySearch(
+  title,
+  genreFilter = null,
+  countryFilter = null
+) {
   try {
     const res = await axios.get("http://www.omdbapi.com/", {
       params: {
@@ -57,7 +63,6 @@ async function cacheMoviesBySearch(title) {
     const savedMovies = [];
 
     for (const item of results) {
-      // найти по первичному ключу id
       const existing = await ContentItem.findByPk(item.imdbID);
       if (!existing) {
         const detailsRes = await axios.get("http://www.omdbapi.com/", {
@@ -68,14 +73,25 @@ async function cacheMoviesBySearch(title) {
         });
 
         const details = detailsRes.data;
-
         if (details.Response === "False") continue;
+
+        const genreMatch = genreFilter
+          ? details.Genre.toLowerCase().includes(genreFilter.toLowerCase())
+          : true;
+
+        const countryMatch = countryFilter
+          ? details.Country.toLowerCase().includes(countryFilter.toLowerCase())
+          : true;
+
+        if (!genreMatch || !countryMatch) continue;
 
         const movie = await ContentItem.create({
           id: details.imdbID,
           title: details.Title,
           year: details.Year,
           plot: details.Plot,
+          genre: details.Genre,
+          country: details.Country,
           imdbRating: parseFloat(details.imdbRating) || null,
           posterUrl: details.Poster,
         });
