@@ -1,5 +1,5 @@
 const ContentItem = require("../models/ContentItem");
-
+const { Op } = require("sequelize");
 const express = require("express");
 const router = express.Router();
 const {
@@ -56,16 +56,56 @@ router.get("/all-movies", async (req, res) => {
     res.status(500).json({ message: "Ошибка сервера" });
   }
 });
-router.get("/movies-page", async (req, res) => {
-  const page = parseInt(req.query.page) || 1; // текущая страница
-  const limit = 30; // количество фильмов на страницу
+const sequelize = require("../db"); // чтобы использовать sequelize.fn и sequelize.col
+router.get("/movies-page-mydb", async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 30;
   const offset = (page - 1) * limit;
+
+  const { title, category, countries } = req.query;
+
+  const where = {};
+
+  if (title) {
+    where.title = sequelize.where(
+      sequelize.fn("LOWER", sequelize.col("title")),
+      {
+        [Op.like]: `%${title.toLowerCase()}%`,
+      }
+    );
+  }
+
+  if (category) {
+    where.genre = sequelize.where(
+      sequelize.fn("LOWER", sequelize.col("genre")),
+      {
+        [Op.like]: `%${category.toLowerCase()}%`,
+      }
+    );
+  }
+
+  if (countries) {
+    const countriesArray = countries
+      .split(",")
+      .map((c) => c.trim().toLowerCase());
+
+    where[Op.or] = countriesArray.map((country) =>
+      sequelize.where(sequelize.fn("LOWER", sequelize.col("country")), {
+        [Op.like]: `%${country}%`,
+      })
+    );
+  }
+
+  // Если фильтров нет — сортируем по imdbRating DESC, иначе по createdAt DESC
+  const hasFilters = title || category || countries;
+  const order = hasFilters ? [["createdAt", "DESC"]] : [["imdbRating", "DESC"]];
 
   try {
     const { count, rows } = await ContentItem.findAndCountAll({
+      where,
       limit,
       offset,
-      order: [["createdAt", "DESC"]],
+      order,
     });
 
     res.json({
@@ -75,7 +115,7 @@ router.get("/movies-page", async (req, res) => {
       currentPage: page,
     });
   } catch (error) {
-    console.error("Ошибка получения фильмов с пагинацией:", error);
+    console.error("Ошибка получения фильмов с фильтрами:", error);
     res.status(500).json({ message: "Ошибка сервера" });
   }
 });

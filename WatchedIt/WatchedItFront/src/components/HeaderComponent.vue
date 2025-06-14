@@ -108,6 +108,7 @@
         >
           <!-- Контейнер: Аватар + Ник -->
           <div
+            id="userDropdownBtn"
             class="hidden lgg:flex items-center gap-2 my--4"
             data-dropdown-toggle="userDropdown"
             data-dropdown-placement="bottom-start"
@@ -271,10 +272,9 @@
 </template>
 
 <script setup>
-import { watch } from "vue";
-import { ref, onMounted } from "vue";
+import { ref, onMounted, nextTick, watch, computed } from "vue";
 import { useRouter, useRoute } from "vue-router";
-import { computed } from "vue";
+
 import { useNavigation } from "../router/navigation.js";
 
 import { useAuthStore } from "../stores/auth";
@@ -296,6 +296,26 @@ async function logout() {
     console.error(error);
   }
 }
+
+const initDropdown = async () => {
+  await nextTick();
+
+  const { Dropdown } = await import("flowbite");
+  const triggerEl = document.getElementById("userDropdownBtn");
+  const dropdownEl = document.getElementById("userDropdown");
+
+  if (triggerEl && dropdownEl) {
+    new Dropdown(dropdownEl, triggerEl);
+    console.log("✅ Dropdown успешно инициализирован");
+  }
+};
+
+watch(
+  () => route.fullPath,
+  () => {
+    initDropdown();
+  }
+);
 </script>
 
 <style scoped></style>
