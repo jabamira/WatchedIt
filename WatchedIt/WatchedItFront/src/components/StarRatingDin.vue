@@ -1,9 +1,8 @@
 <template>
-  <div class="flex items-center">
+  <div class="flex items-center" @mouseleave="onMouseLeave">
     <template v-for="index in 10" :key="index">
       <svg
-        @mouseover="hoverRating = index"
-        @mouseleave="hoverRating = 0"
+        @mouseover="onMouseOver(index)"
         @click="setRating(index)"
         :class="[
           'w-4 h-4 cursor-pointer ms-1',
@@ -30,7 +29,7 @@ const props = defineProps({
   modelValue: Number,
 });
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits(["update:modelValue", "hover", "mouseleave"]);
 
 const rating = ref(props.modelValue || 0);
 const hoverRating = ref(0);
@@ -38,6 +37,16 @@ const hoverRating = ref(0);
 function setRating(value) {
   rating.value = value;
   emit("update:modelValue", value);
+}
+
+function onMouseOver(index) {
+  hoverRating.value = index;
+  emit("hover", index);
+}
+
+function onMouseLeave() {
+  hoverRating.value = 0;
+  emit("mouseleave");
 }
 
 watch(

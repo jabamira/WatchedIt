@@ -5,7 +5,7 @@ const authRoutes = require("./routes/auth");
 
 const meRoute = require("./routes/me");
 const Services = require("./routes/services");
-const favoritesRoutes = require("./routes/user");
+const UserRoutes = require("./routes/user");
 
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
@@ -19,13 +19,16 @@ app.use(
     credentials: true,
   })
 );
-app.use("/user", favoritesRoutes);
+app.use("/user", UserRoutes);
 app.use("/services", Services);
 app.use("/auth", authRoutes);
 app.use("/me", meRoute);
 const sequelize = require("./db");
 const User = require("./models/User");
-
+const Rating = require("./models/Rating");
+const Favorite = require("./models/Favorite");
+const ContentItem = require("./models/ContentItem");
+require("./models/associations");
 (async () => {
   try {
     await sequelize.authenticate();

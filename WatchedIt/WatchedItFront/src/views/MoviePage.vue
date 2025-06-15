@@ -31,10 +31,10 @@
             <!-- Кнопка "Add to Favorite" -->
             <div class="relative">
               <button
-                @click="handleAddToFavorite"
+                @click="toggleFavorite"
                 class="flex items-center justify-center py-2.5 px-5 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 hover:text-indigo-700 focus:ring-4 focus:outline-none focus:ring-indigo-300 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-indigo-800"
               >
-                Add to Favorite
+                {{ isFavorite ? "Remove from Favorite" : "Add to Favorite" }}
               </button>
 
               <div
@@ -47,8 +47,18 @@
 
             <!-- Рейтинг -->
             <div class="relative ms-4 my-auto">
-              <div @click="handleRatingClick">
-                <StarRating :rating="userRating" />
+              <div>
+                <StarRating
+                  v-model="userRating"
+                  @update:modelValue="handleRatingClick"
+                  @hover="handleHover"
+                  @mouseleave="handleHoverLeave"
+                />
+              </div>
+              <div
+                class="text-yellow-400 text-sm mt-1 font-semibold select-none"
+              >
+                {{ (hoverRating || userRating).toFixed(1) }}
               </div>
 
               <div
@@ -74,7 +84,9 @@
         </div>
       </div>
     </div>
-
+    <div v-if="movie">
+      <CommentsSection :movieId="movie.id" />
+    </div>
     <div v-else class="text-center text-gray-500 dark:text-gray-400">
       Фильм не найден.
     </div>
@@ -85,17 +97,27 @@
 import { ref, onMounted } from "vue";
 import { useRoute } from "vue-router";
 import axios from "axios";
+import CommentsSection from "../components/CommentsSection.vue";
 import StarRating from "../components/StarRatingDin.vue";
 const route = useRoute();
 const movie = ref(null);
 const isLoading = ref(true);
-
+const isFavorite = ref(false);
 import { useAuthStore } from "../stores/auth";
 const auth = useAuthStore();
 const userRating = ref(0);
 
 const showRatingTooltip = ref(false);
 const showFavoriteTooltip = ref(false);
+const hoverRating = ref(0);
+
+function handleHover(rating) {
+  hoverRating.value = rating;
+}
+
+function handleHoverLeave() {
+  hoverRating.value = 0;
+}
 
 function showTooltip(refToShow, ...otherRefs) {
   otherRefs.forEach((ref) => (ref.value = false));
@@ -106,21 +128,89 @@ function showTooltip(refToShow, ...otherRefs) {
     refToShow.value = false;
   }, 2000);
 }
-
-function handleRatingClick() {
-  if (!auth.isAuthenticated) {
-    showTooltip(showRatingTooltip, showFavoriteTooltip);
-    return;
-  }
-  // логика оценки
-}
-
-function handleAddToFavorite() {
+async function toggleFavorite() {
   if (!auth.isAuthenticated) {
     showTooltip(showFavoriteTooltip, showRatingTooltip);
     return;
   }
-  // логика добавления в избранное
+
+  try {
+    if (isFavorite.value) {
+      await axios.delete("http://localhost:3000/user/removeFavorite", {
+        data: { movieId: movie.value.id },
+        withCredentials: true,
+      });
+      isFavorite.value = false;
+    } else {
+      await axios.post(
+        "http://localhost:3000/user/addFavorite",
+        { movieId: movie.value.id },
+        { withCredentials: true }
+      );
+      isFavorite.value = true;
+    }
+  } catch (err) {
+    console.error(
+      "Ошибка при переключении избранного:",
+      err.response?.data || err.message
+    );
+  }
+}
+
+async function fetchUserRating() {
+  if (!auth.isAuthenticated) return;
+
+  try {
+    const res = await axios.get(
+      `http://localhost:3000/user/rating/${movie.value.id}`,
+      { withCredentials: true }
+    );
+    userRating.value = res.data.value || 0;
+  } catch (err) {
+    console.error(
+      "Ошибка загрузки рейтинга:",
+      err.response?.data || err.message
+    );
+  }
+}
+
+async function handleRatingClick(newRating) {
+  newRating = Number(newRating);
+  if (!auth.isAuthenticated) {
+    showTooltip(showRatingTooltip, showFavoriteTooltip);
+    return;
+  }
+
+  try {
+    await axios.post(
+      "http://localhost:3000/user/rate",
+      { movieId: movie.value.id, value: newRating },
+      { withCredentials: true }
+    );
+    userRating.value = newRating;
+    console.log("Рейтинг сохранён:", newRating);
+  } catch (err) {
+    console.error(
+      "Ошибка сохранения рейтинга:",
+      err.response?.data || err.message
+    );
+  }
+}
+async function checkFavoriteStatus() {
+  if (!auth.isAuthenticated) return;
+
+  try {
+    const res = await axios.get("http://localhost:3000/user/favorites", {
+      withCredentials: true,
+    });
+
+    isFavorite.value = res.data.some((fav) => fav.id === movie.value.id);
+  } catch (err) {
+    console.error(
+      "Ошибка проверки избранного:",
+      err.response?.data || err.message
+    );
+  }
 }
 
 onMounted(async () => {
@@ -130,6 +220,9 @@ onMounted(async () => {
     );
     movie.value = response.data;
     console.log("Фильм получен:", movie.value);
+
+    await checkFavoriteStatus();
+    await fetchUserRating();
   } catch (err) {
     console.error("Ошибка загрузки фильма:", err);
   } finally {
