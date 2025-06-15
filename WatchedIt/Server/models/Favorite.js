@@ -12,7 +12,4 @@ const Favorite = sequelize.define("Favorite", {
   },
 });
 
-User.belongsToMany(ContentItem, { through: Favorite });
-ContentItem.belongsToMany(User, { through: Favorite });
-
 module.exports = Favorite;

@@ -96,9 +96,7 @@ router.get("/movies-page-mydb", async (req, res) => {
     );
   }
 
-  // Если фильтров нет — сортируем по imdbRating DESC, иначе по createdAt DESC
-  const hasFilters = title || category || countries;
-  const order = hasFilters ? [["createdAt", "DESC"]] : [["imdbRating", "DESC"]];
+  const order = [["imdbRating", "DESC"]];
 
   try {
     const { count, rows } = await ContentItem.findAndCountAll({
@@ -116,6 +114,20 @@ router.get("/movies-page-mydb", async (req, res) => {
     });
   } catch (error) {
     console.error("Ошибка получения фильмов с фильтрами:", error);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+router.get("/movie/:id", async (req, res) => {
+  try {
+    const movie = await ContentItem.findByPk(req.params.id);
+
+    if (!movie) {
+      return res.status(404).json({ message: "Фильм не найден" });
+    }
+
+    res.json(movie);
+  } catch (error) {
+    console.error("Ошибка получения фильма:", error);
     res.status(500).json({ message: "Ошибка сервера" });
   }
 });

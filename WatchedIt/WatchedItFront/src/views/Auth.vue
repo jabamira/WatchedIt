@@ -1,7 +1,5 @@
 <template>
-  <div
-    class="flex w-screen h-screen flex-col pt-18 justify-center px-6 py-12 lg:px-8"
-  >
+  <div class="flex h-screen flex-col pt-18 justify-center px-6 py-12 lg:px-8">
     <div
       class="sm:mx-auto sm:w-full sm:max-w-sm flex flex-row items-baseline justify-center space-x-2 whitespace-nowrap"
     >
@@ -156,11 +154,12 @@
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
+import { useNavigation } from "../router/navigation.js";
+const nav = useNavigation();
 
 const router = useRouter();
 const formRef = ref(null);
 
-// локальные переменные
 const email = ref("");
 const login = ref("");
 const password = ref("");
@@ -200,7 +199,7 @@ async function handleLogin() {
         credentials: "include",
       });
       if (res.ok) {
-        router.push("/InfoPage");
+        nav.NavigateFilms();
       } else {
         console.error("Token невалиден после входа");
       }

@@ -7,6 +7,7 @@ import FilmsPage from "../views/FilmsPage.vue";
 import SerialsPage from "../views/SerialsPage.vue";
 import AnimePage from "../views/AnimePage.vue";
 import CartoonsPage from "../views/CartoonsPage.vue";
+import MoviePage from "../views/MoviePage.vue";
 import { useAuthStore } from "../stores/auth"; // путь к твоему store
 
 const routes = [
@@ -21,7 +22,19 @@ const routes = [
     path: "/library",
     component: LibraryLayout,
     children: [
-      { path: "films", component: FilmsPage },
+      {
+        path: "films",
+        children: [
+          {
+            path: "",
+            component: FilmsPage, // список фильмов
+          },
+          {
+            path: ":id",
+            component: MoviePage,
+          },
+        ],
+      },
       { path: "serials", component: SerialsPage },
       { path: "anime", component: AnimePage },
       { path: "cartoons", component: CartoonsPage },

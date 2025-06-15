@@ -40,7 +40,7 @@
           :class="[
             'flex-row gap-10 hidden cursor-pointer justify-end md:flex mr-0 text-xl font-medium  md:order-3',
             isAuthRoute ? 'md:mr-94' : '',
-            !authStore.isAuthenticated ? 'mr-45' : '',
+            !authStore.isAuthenticated ? 'mr-41' : 'mr-20',
           ]"
         >
           <a @click="nav.NavigateFilms()" class="link">Films</a>
@@ -104,14 +104,13 @@
         <!--кнопки профиля-->
         <div
           v-if="authStore.isAuthenticated"
-          class="flex flex-row gap-3 w-19 items-center mr-52 md:order-2"
+          class="relative flex-row gap-3 w-100 items-center mr-5 md:order-2"
         >
           <!-- Контейнер: Аватар + Ник -->
           <div
             id="userDropdownBtn"
             class="hidden lgg:flex items-center gap-2 my--4"
             data-dropdown-toggle="userDropdown"
-            data-dropdown-placement="bottom-start"
           >
             <img
               id="avatarButton"
@@ -135,11 +134,15 @@
           <!-- Dropdown menu -->
           <div
             id="userDropdown"
-            class="z-10 hidden bg-white divide-y divide-gray-100 rounded-lg shadow-sm w-44 dark:bg-gray-800 dark:divide-gray-600 border border-gray-500"
+            class="z-10 hidden w-110 bg-white divide-y divide-gray-100 rounded-lg shadow-sm dark:bg-gray-800 dark:divide-gray-600 border border-gray-500"
           >
             <div class="px-4 py-3 text-sm text-gray-900 dark:text-white">
-              <div class="">Bonnie Green</div>
-              <div class="font-medium truncate">name@flowbite.com</div>
+              <div class="font-medium break-all">
+                {{ authStore.user.user.login }}
+              </div>
+              <div class="font-medium break-all">
+                {{ authStore.user.user.email }}
+              </div>
             </div>
             <ul
               class="py-2 text-sm text-gray-700 dark:text-gray-200"

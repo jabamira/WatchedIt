@@ -5,6 +5,7 @@ const authRoutes = require("./routes/auth");
 
 const meRoute = require("./routes/me");
 const Services = require("./routes/services");
+const favoritesRoutes = require("./routes/user");
 
 const bodyParser = require("body-parser");
 const cookieParser = require("cookie-parser");
@@ -18,7 +19,7 @@ app.use(
     credentials: true,
   })
 );
-
+app.use("/user", favoritesRoutes);
 app.use("/services", Services);
 app.use("/auth", authRoutes);
 app.use("/me", meRoute);

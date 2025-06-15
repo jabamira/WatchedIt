@@ -119,7 +119,7 @@
               id="default-checkbox"
               type="checkbox"
               v-model="useApi"
-              class="text-blue-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-blue-500 dark:focus:ring-blue-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
+              class="text-indigo-600 bg-gray-100 border-gray-300 rounded-sm focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
             />
             <label
               for="default-checkbox"
@@ -166,10 +166,11 @@
   <div
     class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 3xl:grid-cols-5 gap-6 mt-8 max-w-6xl mx-auto"
   >
-    <div
+    <router-link
       v-for="movie in movies"
       :key="movie.id"
-      class="bg-white border border-gray-400 rounded-lg hover:scale-95 color-transition cursor-pointer transition-transform duration-300 shadow-sm hover:dark:bg-gray-700 dark:bg-gray-800 dark:border-gray-700 flex flex-col h-full"
+      :to="`/library/films/${movie.id}`"
+      class="bg-white border border-gray-400 rounded-lg hover:scale-95 color-transition cursor-pointer transition-transform duration-300 shadow-sm hover:dark:bg-gray-700 dark:bg-gray-800 dark:border-gray-700 flex flex-col h-full no-underline"
     >
       <img
         class="rounded-t-lg w-full h-64 object-cover"
@@ -190,7 +191,7 @@
           <StarRating :rating="movie.imdbRating" />
         </div>
       </div>
-    </div>
+    </router-link>
   </div>
 
   <!--NoFilms-->
@@ -246,6 +247,8 @@
 import { ref, onMounted, nextTick, computed } from "vue";
 import { useRouter } from "vue-router";
 import axios from "axios";
+import { useNavigation } from "../router/navigation.js";
+const nav = useNavigation();
 
 import StarRating from "../components/StarRating.vue"; // добавь путь
 const router = useRouter();
