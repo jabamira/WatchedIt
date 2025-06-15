@@ -14,6 +14,7 @@ export function useNavigation() {
   const NavigateSerials = () => router.push("/library/serials");
   const NavigateAnime = () => router.push("/library/anime");
   const NavigateCartoons = () => router.push("/library/cartoons");
+  const NavigateUser = () => router.push("/user");
 
   return {
     NavigateAuth,
@@ -23,5 +24,6 @@ export function useNavigation() {
     NavigateSerials,
     NavigateAnime,
     NavigateCartoons,
+    NavigateUser,
   };
 }

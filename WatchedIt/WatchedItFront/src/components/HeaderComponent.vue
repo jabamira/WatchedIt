@@ -115,8 +115,8 @@
             <img
               id="avatarButton"
               type="button"
-              class="h-12 rounded-full cursor-pointer w-full"
-              src="https://flowbite.com/docs/images/people/profile-picture-5.jpg"
+              class="h-13 w-13 rounded-full cursor-pointer object-cover"
+              :src="avatarSrc"
               alt="User dropdown"
             />
 
@@ -150,23 +150,16 @@
             >
               <li>
                 <a
-                  href="#"
+                  @click="nav.NavigateUser()"
                   class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                  >Dashboard</a
+                  >Profile</a
                 >
               </li>
               <li>
                 <a
-                  href="#"
+                  @click="nav.NavigateUser()"
                   class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
                   >Settings</a
-                >
-              </li>
-              <li>
-                <a
-                  href="#"
-                  class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 dark:hover:text-white"
-                  >Earnings</a
                 >
               </li>
             </ul>
@@ -299,7 +292,11 @@ async function logout() {
     console.error(error);
   }
 }
-
+const avatarSrc = ref(
+  authStore.user?.user?.avatarUrl
+    ? `http://localhost:3000${authStore.user.user.avatarUrl}`
+    : "https://flowbite.s3.amazonaws.com/blocks/marketing-ui/avatars/helene-engels.png"
+);
 const initDropdown = async () => {
   await nextTick();
 
@@ -317,6 +314,14 @@ watch(
   () => route.fullPath,
   () => {
     initDropdown();
+  }
+);
+watch(
+  () => authStore.user?.user?.avatarUrl,
+  (newUrl) => {
+    avatarSrc.value = newUrl
+      ? `http://localhost:3000${newUrl}`
+      : "https://flowbite.s3.amazonaws.com/blocks/marketing-ui/avatars/helene-engels.png";
   }
 );
 </script>

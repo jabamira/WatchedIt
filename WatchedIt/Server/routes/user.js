@@ -10,6 +10,7 @@ const {
   CommentReaction,
 } = require("../models/associations");
 
+//MoVIES
 router.post("/addFavorite", authMiddleware, async (req, res) => {
   const user = req.user;
   const { movieId } = req.body;
@@ -122,7 +123,7 @@ router.get("/comments/:contentItemId", async (req, res) => {
     const comments = await Comment.findAll({
       where: { contentItemId: req.params.contentItemId },
       include: [
-        { model: User, attributes: ["id", "login"] },
+        { model: User, attributes: ["id", "login", "avatarUrl"] },
         {
           model: CommentReaction,
           attributes: ["reactionType"],
@@ -268,4 +269,68 @@ router.post("/comments/:id/react", authMiddleware, async (req, res) => {
     res.status(500).json({ error: e.message });
   }
 });
+//USER
+const upload = require("../services/multer");
+router.post(
+  "/upload-avatar/:userId",
+  upload.single("avatar"),
+  async (req, res) => {
+    try {
+      const user = await User.findByPk(req.params.userId);
+      if (!user) return res.status(404).json({ error: "User not found" });
+
+      const avatarUrl = `/uploads/avatars/${req.file.filename}`; // относительный путь
+      user.avatarUrl = avatarUrl;
+      await user.save();
+
+      res.json({ message: "Avatar uploaded", avatarUrl });
+    } catch (err) {
+      res.status(500).json({ error: "Upload failed" });
+    }
+  }
+);
+router.get("/comments/count/:userId", async (req, res) => {
+  try {
+    const count = await Comment.count({
+      where: { userId: req.params.userId },
+    });
+    res.json({ userId: req.params.userId, commentCount: count });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+router.get("/ratings/count/:userId", async (req, res) => {
+  try {
+    const count = await Rating.count({
+      where: { userId: req.params.userId },
+    });
+    res.json({ userId: req.params.userId, ratingCount: count });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+router.put("/profile", authMiddleware, async (req, res) => {
+  const { birthDate, gender } = req.body;
+
+  try {
+    const allowedGenders = [
+      "Male",
+      "Female",
+      "Helicopter",
+      "Other",
+      "vkishnik",
+    ];
+    if (gender && !allowedGenders.includes(gender)) {
+      return res.status(400).json({ message: "Invalid gender" });
+    }
+
+    await User.update({ birthDate, gender }, { where: { id: req.user.id } });
+
+    res.json({ message: "Profile updated successfully" });
+  } catch (err) {
+    console.error("Ошибка при обновлении профиля:", err);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
 module.exports = router;

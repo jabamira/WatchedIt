@@ -149,13 +149,26 @@
           <span
             v-for="country in selectedCountries"
             :key="country"
-            class="bg-indigo-600 py-2 text-white px-2 mt-2 rounded-full flex items-center text-sm"
+            @click="removeCountry(country)"
+            class="bg-indigo-600 py-2 text-white px-2 mt-2 rounded-full hover:bg-indigo-800 flex items-center text-sm"
           >
             {{ country }}
-            <button
-              @click="removeCountry(country)"
-              class="ml-1 text-white font-bold"
-            ></button>
+            <button class="ml-1 text-white font-bold">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                class="h-4 w-4"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
           </span>
         </div>
       </div>

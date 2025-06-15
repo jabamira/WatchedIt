@@ -7,6 +7,7 @@ import FilmsPage from "../views/FilmsPage.vue";
 import SerialsPage from "../views/SerialsPage.vue";
 import AnimePage from "../views/AnimePage.vue";
 import CartoonsPage from "../views/CartoonsPage.vue";
+import UserPage from "../views/UserPage.vue";
 import MoviePage from "../views/MoviePage.vue";
 import { useAuthStore } from "../stores/auth"; // путь к твоему store
 
@@ -16,6 +17,11 @@ const routes = [
   {
     path: "/InfoPage",
     component: InfoPage,
+    meta: { requiresAuth: true },
+  },
+  {
+    path: "/user",
+    component: UserPage,
     meta: { requiresAuth: true },
   },
   {

@@ -13,19 +13,17 @@
             :class="[
               'w-full rounded-3xl border p-8 flex flex-col gap-4',
               comment.userId === currentUserId
-                ? 'bg-gray-900 text-gray-600 items-end'
+                ? 'bg-gray-900 text-white border-2 border-gray-500 items-end'
                 : 'bg-gray-800 border-indigo-200 text-white items-start',
             ]"
           >
             <div class="flex justify-between w-full items-center">
               <div class="flex items-center gap-3">
-                <div
-                  class="w-10 h-10 rounded-full bg-indigo-300 overflow-hidden"
-                >
+                <div class="w-17 rounded-full bg-indigo-300 overflow-hidden">
                   <img
                     :src="
-                      comment.User?.avatar ||
-                      'https://via.placeholder.com/40?text=U'
+                      comment.User?.avatarUrl ||
+                      'https://img.freepik.com/premium-vector/user-icons-includes-user-icons-people-icons-symbols-premiumquality-graphic-design-elements_981536-526.jpg?semt=ais_hybrid'
                     "
                     alt="User avatar"
                     class="object-cover w-full h-full"
@@ -160,7 +158,7 @@ const props = defineProps({
 });
 
 const authStore = useAuthStore();
-const currentUserId = computed(() => authStore.user.user?.id || null);
+const currentUserId = computed(() => authStore.user?.user?.id || null);
 
 const newComment = ref("");
 const comments = ref([]);
@@ -175,7 +173,15 @@ async function fetchComments() {
     const res = await axios.get(
       `http://localhost:3000/user/comments/${props.movieId}`
     );
-    comments.value = res.data;
+
+    comments.value = res.data.map((comment) => {
+      if (comment.User?.avatarUrl) {
+        comment.User.avatarUrl = `http://localhost:3000${comment.User.avatarUrl}`;
+      }
+      return comment;
+    });
+
+    console.log(comments.value);
   } catch (e) {
     console.error("Ошибка загрузки комментариев", e);
   }
