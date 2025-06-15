@@ -3,7 +3,7 @@ const ContentItem = require("./ContentItem");
 const Favorite = require("./Favorite");
 const Rating = require("./Rating");
 const Comment = require("./Comment");
-
+const CommentReaction = require("./CommentReaction");
 // --- Favorites ---
 User.belongsToMany(ContentItem, {
   through: Favorite,
@@ -31,10 +31,20 @@ Comment.belongsTo(User, { foreignKey: "userId" });
 
 ContentItem.hasMany(Comment, { foreignKey: "contentItemId" });
 Comment.belongsTo(ContentItem, { foreignKey: "contentItemId" });
+
+User.hasMany(CommentReaction, { foreignKey: "userId", onDelete: "CASCADE" });
+CommentReaction.belongsTo(User, { foreignKey: "userId" });
+
+Comment.hasMany(CommentReaction, {
+  foreignKey: "commentId",
+  onDelete: "CASCADE",
+});
+CommentReaction.belongsTo(Comment, { foreignKey: "commentId" });
 module.exports = {
   User,
   ContentItem,
   Favorite,
   Rating,
   Comment,
+  CommentReaction,
 };

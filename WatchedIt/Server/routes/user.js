@@ -7,6 +7,7 @@ const {
   Favorite,
   Rating,
   Comment,
+  CommentReaction,
 } = require("../models/associations");
 
 router.post("/addFavorite", authMiddleware, async (req, res) => {
@@ -116,4 +117,155 @@ router.get("/rating/:movieId", authMiddleware, async (req, res) => {
   }
 });
 
+router.get("/comments/:contentItemId", async (req, res) => {
+  try {
+    const comments = await Comment.findAll({
+      where: { contentItemId: req.params.contentItemId },
+      include: [
+        { model: User, attributes: ["id", "login"] },
+        {
+          model: CommentReaction,
+          attributes: ["reactionType"],
+        },
+      ],
+      order: [["createdAt", "ASC"]],
+    });
+
+    // Счёт лайков/дизлайков
+    const formatted = comments.map((comment) => {
+      const reactions = comment.CommentReactions || [];
+      const likes = reactions.filter((r) => r.reactionType === "like").length;
+      const dislikes = reactions.filter(
+        (r) => r.reactionType === "dislike"
+      ).length;
+
+      return {
+        ...comment.toJSON(),
+        likes,
+        dislikes,
+      };
+    });
+
+    res.json(formatted);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+router.post("/comments", authMiddleware, async (req, res) => {
+  try {
+    const { contentItemId, text } = req.body;
+    const userId = req.user.id; // берём из middleware
+
+    if (!contentItemId || !text) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    const newComment = await Comment.create({ userId, contentItemId, text });
+
+    const commentWithUser = await Comment.findOne({
+      where: { id: newComment.id },
+      include: [{ model: User, attributes: ["id", "login"] }],
+    });
+    res.status(201).json(commentWithUser);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+router.delete("/comments/:id", authMiddleware, async (req, res) => {
+  try {
+    const commentId = req.params.id;
+    const userId = req.user.id;
+
+    const comment = await Comment.findByPk(commentId);
+
+    if (!comment) {
+      return res.status(404).json({ error: "Comment not found" });
+    }
+
+    // Только автор может удалить
+    if (comment.userId !== userId) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    await comment.destroy();
+    res.status(200).json({ message: "Comment deleted" });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+router.put("/comments/:id", authMiddleware, async (req, res) => {
+  try {
+    const commentId = req.params.id;
+    const userId = req.user.id;
+    const { text } = req.body;
+
+    if (!text) {
+      return res.status(400).json({ error: "Text is required" });
+    }
+
+    const comment = await Comment.findByPk(commentId);
+
+    if (!comment) {
+      return res.status(404).json({ error: "Comment not found" });
+    }
+
+    if (comment.userId !== userId) {
+      return res.status(403).json({ error: "Forbidden" });
+    }
+
+    comment.text = text;
+    await comment.save();
+
+    res.status(200).json(comment);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+router.post("/comments/:id/react", authMiddleware, async (req, res) => {
+  try {
+    const commentId = req.params.id;
+    const userId = req.user.id;
+    const { reactionType } = req.body; // "like" or "dislike"
+
+    if (!["like", "dislike"].includes(reactionType)) {
+      return res.status(400).json({ error: "Invalid reaction type" });
+    }
+
+    const comment = await Comment.findByPk(commentId);
+    if (!comment) {
+      return res.status(404).json({ error: "Comment not found" });
+    }
+
+    // Поиск текущей реакции
+    const existing = await CommentReaction.findOne({
+      where: { userId, commentId },
+    });
+
+    if (existing) {
+      if (existing.reactionType === reactionType) {
+        // Нажатие на ту же реакцию — снять
+        await existing.destroy();
+        return res.status(200).json({ message: "Reaction removed" });
+      } else {
+        // Обновить на другую реакцию
+        existing.reactionType = reactionType;
+        await existing.save();
+        return res.status(200).json({ message: "Reaction updated" });
+      }
+    }
+
+    // Создать новую реакцию
+    await CommentReaction.create({
+      userId,
+      commentId,
+      reactionType,
+    });
+
+    res.status(201).json({ message: "Reaction added" });
+  } catch (e) {
+    console.error("Error in comment reaction", e);
+    res.status(500).json({ error: e.message });
+  }
+});
 module.exports = router;
