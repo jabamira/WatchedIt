@@ -62,12 +62,26 @@ router.get("/favorites", authMiddleware, async (req, res) => {
         model: ContentItem,
         as: "Favorites",
         through: { attributes: [] },
+        include: [
+          {
+            model: Rating,
+            where: { userId: req.user.id },
+            required: false, // чтобы фильмы без рейтинга тоже включались
+            attributes: ["value"],
+          },
+        ],
       },
     });
 
     if (!user) return res.status(404).json({ message: "User not found" });
 
-    res.json(user.Favorites);
+    // Преобразуем результат
+    const favoritesWithRating = user.Favorites.map((movie) => ({
+      ...movie.toJSON(),
+      userRating: movie.Ratings[0]?.value || 0,
+    }));
+
+    res.json(favoritesWithRating);
   } catch (err) {
     console.error("Ошибка получения избранного:", err);
     res.status(500).json({ message: "Server error" });

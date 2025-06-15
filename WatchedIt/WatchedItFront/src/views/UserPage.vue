@@ -202,6 +202,7 @@
           </div>
         </div>
       </div>
+
       <div
         class="grid grid-cols-2 gap-6 border-b border-t border-gray-200 py-4 dark:border-gray-700 md:py-8 lg:grid-cols-4 xl:gap-16"
       >
@@ -315,6 +316,7 @@
             <th scope="col" class="px-6 py-3">Страна</th>
             <th scope="col" class="px-6 py-3">Жанр</th>
             <th scope="col" class="px-6 py-3">Рейтинг IMDb</th>
+            <th scope="col" class="px-6 py-3">Ваша оценка</th>
             <th scope="col" class="px-6 py-3 rounded-tr-lg">
               <span class="sr-only">Удалить</span>
             </th>
@@ -338,18 +340,32 @@
                 {{ movie.title }}
               </router-link>
             </th>
+            <td class="px-6 py-4">{{ movie.year }}</td>
+            <td class="px-6 py-4">{{ movie.country }}</td>
+            <td class="px-6 py-4">{{ movie.genre }}</td>
+            <td class="px-6 py-4">{{ movie.imdbRating || "N/A" }}</td>
+
+            <!-- Новый столбик -->
             <td class="px-6 py-4">
-              {{ movie.year }}
+              <div
+                class="flex items-center"
+                @mouseleave="hoverRatingMap[movie.id] = 0"
+              >
+                <StarRating
+                  :modelValue="movie.userRating"
+                  @update:modelValue="(val) => updateRating(movie.id, val)"
+                  @hover="(val) => (hoverRatingMap[movie.id] = val)"
+                />
+                <div
+                  class="text-yellow-400 text-sm mt-1 font-semibold select-none ms-2"
+                >
+                  {{
+                    (hoverRatingMap[movie.id] || movie.userRating).toFixed(1)
+                  }}
+                </div>
+              </div>
             </td>
-            <td class="px-6 py-4">
-              {{ movie.country }}
-            </td>
-            <td class="px-6 py-4">
-              {{ movie.genre }}
-            </td>
-            <td class="px-6 py-4">
-              {{ movie.imdbRating || "N/A" }}
-            </td>
+
             <td
               class="px-6 py-4 text-right"
               :class="index === favorites.length - 1 ? 'rounded-br-lg' : ''"
@@ -358,13 +374,14 @@
                 @click="removeFavorite(movie.id)"
                 class="font-medium text-red-600 dark:text-red-500 hover:underline"
               >
-                Remove from fovorite
+                Remove from favorite
               </button>
             </td>
           </tr>
+
           <tr v-if="favorites.length === 0">
             <td
-              colspan="6"
+              colspan="7"
               class="px-6 py-4 text-center text-gray-500 dark:text-gray-400"
             >
               Избранных фильмов нет.
@@ -380,6 +397,7 @@ import { ref, computed, onMounted, watch } from "vue";
 import axios from "axios";
 import { useAuthStore } from "../stores/auth";
 import { useNavigation } from "../router/navigation.js";
+import StarRating from "../components/StarRatingDin.vue";
 const nav = useNavigation();
 
 const auth = useAuthStore();
@@ -420,7 +438,15 @@ const avatarSrc = ref(
     ? `http://localhost:3000${auth.user.user.avatarUrl}`
     : "https://flowbite.s3.amazonaws.com/blocks/marketing-ui/avatars/helene-engels.png"
 );
+const hoverRatingMap = ref({});
 
+function handleHover(rating) {
+  hoverRating.value = rating;
+}
+
+function handleHoverLeave() {
+  hoverRating.value = 0;
+}
 const saveBirthDate = async () => {
   try {
     await axios.put(
@@ -437,6 +463,31 @@ const saveBirthDate = async () => {
     );
   }
 };
+async function updateRating(movieId, newRating) {
+  newRating = Number(newRating);
+  if (!auth.isAuthenticated) {
+    showTooltip(showRatingTooltip, showFavoriteTooltip); // если нужна подсказка
+    return;
+  }
+
+  try {
+    await axios.post(
+      "http://localhost:3000/user/rate",
+      { movieId, value: newRating },
+      { withCredentials: true }
+    );
+
+    const movie = favorites.value.find((m) => m.id === movieId);
+    if (movie) movie.userRating = newRating;
+
+    console.log("Рейтинг сохранён:", newRating);
+  } catch (err) {
+    console.error(
+      "Ошибка сохранения рейтинга:",
+      err.response?.data || err.message
+    );
+  }
+}
 
 const saveGender = async () => {
   try {
@@ -491,7 +542,9 @@ onMounted(async () => {
         withCredentials: true,
       }
     );
-    favorites.value = resFavorites.data;
+    favorites.value = resFavorites.data.sort(
+      (a, b) => b.userRating - a.userRating
+    );
 
     if (auth.user?.user?.id) {
       const resCommentsCount = await axios.get(
