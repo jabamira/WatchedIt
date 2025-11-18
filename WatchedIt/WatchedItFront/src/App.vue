@@ -10,8 +10,7 @@ import HeaderComponent from "./components/HeaderComponent.vue";
 
 export default {
   components: {
-    HeaderComponent,
-    FooterComponent,
+    
   },
 };
 </script>
