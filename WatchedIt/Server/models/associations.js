@@ -1,50 +1,31 @@
 const User = require("./User");
-const ContentItem = require("./ContentItem");
-const Favorite = require("./Favorite");
-const Rating = require("./Rating");
-const Comment = require("./Comment");
-const CommentReaction = require("./CommentReaction");
-// --- Favorites ---
-User.belongsToMany(ContentItem, {
-  through: Favorite,
-  foreignKey: "userId",
-  otherKey: "contentItemId",
-  as: "Favorites",
-});
+const Poll = require("./Poll");
+const PollOption = require("./PollOption");
+const PollVote = require("./PollVote");
 
-ContentItem.belongsToMany(User, {
-  through: Favorite,
-  foreignKey: "contentItemId",
-  otherKey: "userId",
-  as: "UsersWhoFavorited",
-});
+// User → Poll
+User.hasMany(Poll, { foreignKey: "userId", onDelete: "CASCADE" });
+Poll.belongsTo(User, { foreignKey: "userId" });
 
-// --- Ratings ---
-User.hasMany(Rating, { foreignKey: "userId" });
-ContentItem.hasMany(Rating, { foreignKey: "contentItemId" });
-Rating.belongsTo(User, { foreignKey: "userId" });
-Rating.belongsTo(ContentItem, { foreignKey: "contentItemId" });
 
-// --- Comments ---
-User.hasMany(Comment, { foreignKey: "userId" });
-Comment.belongsTo(User, { foreignKey: "userId" });
+Poll.hasMany(PollOption, { foreignKey: "pollId", onDelete: "CASCADE" });
+PollOption.belongsTo(Poll, { foreignKey: "pollId" });
 
-ContentItem.hasMany(Comment, { foreignKey: "contentItemId" });
-Comment.belongsTo(ContentItem, { foreignKey: "contentItemId" });
+// Poll → PollVote
+Poll.hasMany(PollVote, { foreignKey: "pollId", onDelete: "CASCADE" });
+PollVote.belongsTo(Poll, { foreignKey: "pollId" });
 
-User.hasMany(CommentReaction, { foreignKey: "userId", onDelete: "CASCADE" });
-CommentReaction.belongsTo(User, { foreignKey: "userId" });
+// PollOption → PollVote
+PollOption.hasMany(PollVote, { foreignKey: "optionId", onDelete: "CASCADE" });
+PollVote.belongsTo(PollOption, { foreignKey: "optionId" });
 
-Comment.hasMany(CommentReaction, {
-  foreignKey: "commentId",
-  onDelete: "CASCADE",
-});
-CommentReaction.belongsTo(Comment, { foreignKey: "commentId" });
+// User → PollVote   (может быть null при анонимном)
+User.hasMany(PollVote, { foreignKey: "userId", onDelete: "SET NULL" });
+PollVote.belongsTo(User, { foreignKey: "userId" });
+
 module.exports = {
   User,
-  ContentItem,
-  Favorite,
-  Rating,
-  Comment,
-  CommentReaction,
+  Poll,
+  PollOption,
+  PollVote,
 };

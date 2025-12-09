@@ -2,29 +2,41 @@ const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const bodyParser = require("body-parser");
+const http = require("http");
+
 const app = express();
+
 
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
 app.use(bodyParser.json());
 app.use(cookieParser());
 
-app.use("/uploads", express.static("uploads"));
-app.use("/user", require("./routes/user"));
-app.use("/services", require("./routes/services"));
+
+app.use("/polls", require("./routes/polls"));
 app.use("/auth", require("./routes/auth"));
-app.use("/me", require("./routes/me"));
 
-const http = require("http").createServer(app);
+app.use(require("./routes/me"));
 
-// Подключаем чат
-require("./chat/chat.gateway")(http);
+app.use("/polls", require("./routes/polls"));
+
+const server = http.createServer(app);
+
+
+require("./polls/polls.gateway")(app, server);
+
 
 const sequelize = require("./db");
 require("./models/associations");
 
+
 (async () => {
-  await sequelize.authenticate();
-  await sequelize.sync();
+  try {
+    await sequelize.authenticate();
+    await sequelize.sync();
+    console.log("База данных подключена");
+  } catch (e) {
+    console.error("Ошибка подключения к БД:", e);
+  }
 })();
 
-http.listen(3000, () => console.log("Сервер запущен"));
+server.listen(3000, () => console.log("Сервер запущен на порту 3000"));
