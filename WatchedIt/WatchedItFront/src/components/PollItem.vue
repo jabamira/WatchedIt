@@ -1,68 +1,72 @@
 <template>
-  <div class="border rounded p-4 mb-4 bg-white dark:bg-gray-800 shadow-sm">
-    <div class="flex justify-between items-center mb-2">
-      <h3 class="font-bold text-gray-900 dark:text-white">{{ poll.question }}</h3>
-      <div class="text-sm text-gray-500 dark:text-gray-300 space-x-2">
-        <span v-if="poll.isAnonymous">Анонимно</span>
-        <span v-if="poll.multipleChoice">Несколько вариантов</span>
-      </div>
+  <div class="p-4 bg-[#1f2937] rounded-xl shadow border border-gray-600">
+
+    <div class="font-semibold text-lg text-white mb-3">
+      {{ poll.question }}
     </div>
 
-    <div class="space-y-2">
-      <div
-        v-for="option in poll.options"
-        :key="option.id"
-        class="flex justify-between items-center p-2 border rounded cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700"
-        :class="{'opacity-60': poll.userVotes.includes(option.id)}"
-        @click="handleVote(option.id)"
-      >
-        <span>{{ option.text }}</span>
-        <span class="text-gray-600 dark:text-gray-300">{{ option.votes }} голосов</span>
-      </div>
+    <div
+      v-for="option in poll.options"
+      :key="option.id"
+      @click="select(option.id)"
+      :class="[
+        'flex justify-between px-4 py-2 rounded-lg mb-2',
+        'transition select-none border border-gray-700 text-gray-200',
+        props.isAuthenticated ? 'cursor-pointer hover:bg-gray-700' : 'cursor-default opacity-70',
+        store.userVotes[poll.id]?.includes(option.id)
+          ? 'bg-blue-600 border-blue-400 text-white'
+          : ''
+      ]"
+    >
+      <span class="font-medium">{{ option.text }}</span>
+      <span class="text-sm opacity-80">{{ store.pollResults[poll.id][option.id] ?? 0 }}</span>
     </div>
+
   </div>
 </template>
 
+
+
+
 <script setup>
-import { useAuthStore } from "../stores/auth";
-import { inject } from "vue";
-import axios from "axios";
+import { usePollStore } from "../stores/polls";
 
 const props = defineProps({
   poll: Object,
+  isAuthenticated: Boolean
 });
 
-const emit = defineEmits(["voted"]);
+const store = usePollStore();
 
-const API_URL = "http://localhost:3000";
-const authStore = useAuthStore();
-const socket = inject("socket"); // сокет передаётся из PollsPage
+function select(optionId) {
+  if (!props.isAuthenticated) return;
 
-function handleVote(optionId) {
-  if (!authStore.isAuthenticated) return;
+  const current = store.userVotes[props.poll.id] || [];
 
-  // не даём голосовать повторно за тот же вариант
-  if (props.poll.userVotes.includes(optionId)) return;
+  let newSelection = props.poll.multipleChoice
+    ? (current.includes(optionId)
+      ? current.filter(id => id !== optionId)
+      : [...current, optionId])
+    : [optionId];
 
-  axios
-    .post(`${API_URL}/polls/${props.poll.id}/vote`, { optionIds: optionId }, { withCredentials: true })
-    .then(res => {
-      const { results, userVotes } = res.data;
-      // обновляем локально
-      props.poll.options.forEach(opt => {
-        const r = results.find(r => r.id === opt.id);
-        if (r) opt.votes = r.votes;
-      });
-      props.poll.userVotes = userVotes;
-
-      emit("voted", props.poll.id); // можно использовать для родителя
-    })
-    .catch(err => console.error(err));
+  store.vote(props.poll.id, newSelection);
 }
 </script>
-
 <style scoped>
-.opacity-60 {
-  opacity: 0.6;
+.poll-item {
+  padding: 10px;
+  border-bottom: 1px solid #333;
+}
+
+.option {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px;
+  cursor: pointer;
+}
+
+.option.selected {
+  background: rgba(0, 150, 255, 0.25);
+  border-radius: 4px;
 }
 </style>

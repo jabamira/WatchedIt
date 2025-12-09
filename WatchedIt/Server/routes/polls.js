@@ -3,12 +3,51 @@ const router = express.Router();
 const { Poll, PollOption, PollVote } = require("../models/associations");
 const auth = require("../middleware/auth");
 
-// ==== Получение всех опросов ====
+// Создание опроса
+router.post("/", auth, async (req, res) => {
+  try {
+    const { question, options, isAnonymous, multipleChoice } = req.body;
+    const userId = req.user.id;
+
+    if (!question || !options?.length) {
+      return res.status(400).json({ message: "Вопрос и варианты обязательны" });
+    }
+
+    const poll = await Poll.create({
+      question,
+      isAnonymous: !!isAnonymous,
+      multipleChoice: !!multipleChoice,
+      userId
+    });
+
+    const pollOptions = await Promise.all(
+      options.map(text => PollOption.create({ text, pollId: poll.id }))
+    );
+
+    const response = {
+      id: poll.id,
+      question: poll.question,
+      isAnonymous: poll.isAnonymous,
+      multipleChoice: poll.multipleChoice,
+      userVotes: [], // пустой для всех
+      options: pollOptions.map(o => ({ id: o.id, text: o.text, votes: 0 }))
+    };
+
+    const io = req.app.get("io");
+    if (io) io.emit("poll:created", response);
+
+    res.status(201).json(response);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+
+// Получение всех опросов
 router.get("/", async (req, res) => {
   try {
-    console.log("[GET /polls] Получение опросов");
+    const userId = req.user?.id || null; // если авторизован, узнаем id, иначе null
 
-    // Получаем опросы с вариантами и голосами
     const polls = await Poll.findAll({
       include: {
         model: PollOption,
@@ -17,9 +56,6 @@ router.get("/", async (req, res) => {
       },
       order: [["createdAt", "DESC"]]
     });
-
-    // Если авторизован, получаем userId
-    const userId = req.user?.id || null;
 
     const response = polls.map(poll => {
       const userVotes = poll.PollOptions
@@ -37,26 +73,24 @@ router.get("/", async (req, res) => {
         question: poll.question,
         isAnonymous: poll.isAnonymous,
         multipleChoice: poll.multipleChoice,
-        userVotes,
+        userVotes, // будет пустой у неавторизованного
         options
       };
     });
 
     res.json(response);
   } catch (err) {
-    console.error("[GET /polls] Ошибка:", err);
+    console.error(err);
     res.status(500).json({ message: "Ошибка сервера" });
   }
 });
 
-// ==== Голосование ====
+// Голосование
 router.post("/:pollId/vote", auth, async (req, res) => {
   try {
     const { optionIds } = req.body;
     const pollId = req.params.pollId;
     const userId = req.user.id;
-
-    console.log(`[POST /polls/${pollId}/vote] Пользователь ${userId} голосует за:`, optionIds);
 
     const poll = await Poll.findByPk(pollId, {
       include: {
@@ -65,35 +99,25 @@ router.post("/:pollId/vote", auth, async (req, res) => {
         include: { model: PollVote, as: "PollVotes" }
       }
     });
-
-    if (!poll) {
-      console.log("Опрос не найден:", pollId);
-      return res.status(404).json({ message: "Опрос не найден" });
-    }
+    if (!poll) return res.status(404).json({ message: "Опрос не найден" });
 
     const ids = Array.isArray(optionIds) ? optionIds : [optionIds];
 
-    // Для одиночного выбора удаляем предыдущие голоса
     if (!poll.multipleChoice) {
-      console.log("Удаляем предыдущие голоса пользователя:", userId);
-      await PollVote.destroy({ where: { pollId: poll.id, userId } });
+      await PollVote.destroy({ where: { pollId, userId } });
     }
 
-    // Создаём новые голоса, findOrCreate чтобы не дублировать
     await Promise.all(
       ids.map(optionId =>
         PollVote.findOrCreate({
-          where: { pollId: poll.id, optionId, userId },
-          defaults: { pollId: poll.id, optionId, userId }
+          where: { pollId, optionId, userId },
+          defaults: { pollId, optionId, userId }
         })
       )
     );
 
-    console.log("Голоса успешно сохранены");
-
-    // Получаем актуальное количество голосов
     const options = await PollOption.findAll({
-      where: { pollId: poll.id },
+      where: { pollId },
       include: { model: PollVote, as: "PollVotes" }
     });
 
@@ -107,19 +131,15 @@ router.post("/:pollId/vote", auth, async (req, res) => {
       .filter(o => o.PollVotes.some(v => v.userId === userId))
       .map(o => o.id);
 
-    console.log("Результаты после голосования:", results);
-    console.log("Пользователь голосовал за варианты:", userVotes);
-
-    // Отправляем всем пользователям обновление через сокет
+    // Отправляем обновление всем, но userVotes для фронта отдельного пользователя
     const io = req.app.get("io");
     if (io) {
-      io.to(`poll_${poll.id}`).emit("poll:vote", { pollId: poll.id, results, userVotes });
-      console.log("Обновление отправлено через сокет");
+      io.emit("poll:vote", { pollId: poll.id, results });
     }
 
     res.json({ pollId: poll.id, results, userVotes });
   } catch (err) {
-    console.error("Ошибка при голосовании:", err);
+    console.error(err);
     res.status(500).json({ message: "Ошибка сервера" });
   }
 });
