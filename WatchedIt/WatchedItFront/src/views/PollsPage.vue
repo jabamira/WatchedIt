@@ -1,15 +1,22 @@
 <template>
   <HeaderComponent></HeaderComponent>
-  <div class="pt-24 p-4">
-    <PollCreate v-if="authStore.isAuthenticated" @created="fetchPolls" />
+  <div class="pt-24 p-4 flex flex-col items-center">
+    <!-- Создание опроса -->
+    <PollCreate
+      v-if="authStore.isAuthenticated"
+      @created="fetchPolls"
+      class="w-full max-w-[55%]"
+    />
 
-    <div class="mt-6 space-y-4">
+    <!-- Список опросов -->
+    <div class="mt-6 space-y-4 w-full max-w-[55%]">
       <PollItem
         v-for="poll in pollStore.polls"
         :key="poll.id"
         :poll="poll"
         :isAuthenticated="authStore.isAuthenticated"
         @voted="handleVote"
+        class="mx-auto" 
       />
     </div>
   </div>

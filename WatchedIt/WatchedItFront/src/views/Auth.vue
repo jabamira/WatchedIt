@@ -118,111 +118,59 @@
 <script setup>
 import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
-import axios from "axios";
-import { useNavigation } from "../router/navigation.js";
 import HeaderComponent from "../components/HeaderComponent.vue";
 import { useAuthStore } from "../stores/auth";
-const nav = useNavigation();
+import { useNavigation } from "../router/navigation.js";
 
 const router = useRouter();
-const formRef = ref(null);
-
+const nav = useNavigation();
 const auth = useAuthStore();
 
+const formRef = ref(null);
 const email = ref("");
-const login = ref("");
 const password = ref("");
 const passwordConfirm = ref("");
 const registration = ref(false);
 
-onMounted(async () => {
-  console.log("[Auth] onMounted start");
-
+// Проверяем, нужно ли переключить форму на регистрацию
+onMounted(() => {
   const hash = window.location.hash;
-  console.log("[Auth] hash:", hash);
-
   const queryString = hash.includes("?") ? hash.split("?")[1] : "";
-  console.log("[Auth] queryString:", queryString);
-
   const params = new URLSearchParams(queryString);
-  const mode = params.get("mode");
-  console.log("[Auth] mode:", mode);
+  registration.value = params.get("mode") === "signup";
 
-  registration.value = mode === "signup";
-
-  console.log("[Auth] isAuthenticated before fetch:", auth.isAuthenticated, auth.user);
-
-  if (!auth.isAuthenticated && !auth.user) {
-    try {
-      await auth.fetchUser();
-    } catch (err) {
-      console.error("[Auth] fetchUser error:", err);
-    }
-  }
-
-  console.log("[Auth] isAuthenticated after fetch:", auth.isAuthenticated, auth.user);
-
+  // Если уже авторизован — редиректим на страницу опросов
   if (auth.isAuthenticated) {
-    console.log("[Auth] User already logged in → redirecting to /");
-    router.push("/");
+    router.push("/polls");
   }
 });
 
 function validatePasswordConfirm(event) {
   const input = event.target;
-  if (password.value !== passwordConfirm.value) {
-    input.setCustomValidity("Пароли не совпадают");
-  } else {
-    input.setCustomValidity("");
-  }
+  input.setCustomValidity(password.value !== passwordConfirm.value ? "Пароли не совпадают" : "");
 }
 
 async function handleLogin() {
-  console.log("[FRONT] Login attempt:", email.value, password.value);
-  try {
-    const response = await axios.post(
-      "http://localhost:3000/auth/login",
-      {
-        login: email.value, 
-        password: password.value,
-      },
-      { withCredentials: true }
-    );
-
-    console.log("[FRONT] Login response:", response.data);
-
-    if (response.data.success) {
-      const res = await fetch("http://localhost:3000/me", {
-        credentials: "include",
-      });
-      console.log("[FRONT] /me response status:", res.status);
-
-      if (res.ok) nav.NavigatePolls();
-      else console.error("Token невалиден после входа");
-    } else {
-      alert(response.data.message || "Неверный логин или пароль");
-    }
-  } catch (error) {
-    console.error("[FRONT] Login error:", error.response?.data || error.message);
-    alert("Ошибка входа: " + (error.response?.data?.message || "Неверный логин или пароль"));
+  const success = await auth.login(email.value, password.value);
+  if (success) {
+    // После успешного логина пользователь уже авторизован
+    nav.NavigatePolls(); // или router.push("/polls")
+  } else {
+    alert("Неверный логин или пароль");
   }
 }
 
-
 async function handleRegister() {
-  try {
-    const response = await axios.post("http://localhost:3000/auth/register", {
-  login: email.value,
-  password: password.value,
-});
-    if (response.data.success) {
-      alert("Регистрация прошла успешно!");
-      nav.NavigatePolls();
-    } else {
-      alert(response.data.message || "Ошибка регистрации");
-    }
-  } catch (error) {
-    alert(error.response?.data?.message || "Ошибка регистрации");
+  if (password.value !== passwordConfirm.value) {
+    alert("Пароли не совпадают");
+    return;
+  }
+
+  const success = await auth.register(email.value, password.value);
+  if (success) {
+    nav.NavigatePolls(); // После регистрации пользователь авторизован
+  } else {
+    alert("Ошибка регистрации");
   }
 }
 
@@ -231,8 +179,11 @@ async function clickAuth() {
     formRef.value.reportValidity();
     return;
   }
-  if (registration.value) await handleRegister();
-  else await handleLogin();
+  if (registration.value) {
+    await handleRegister();
+  } else {
+    await handleLogin();
+  }
 }
 
 function SwapAuthRegistr() {

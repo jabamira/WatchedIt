@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { Poll, PollOption, PollVote } = require("../models/associations");
+const { Poll, PollOption,User, PollVote } = require("../models/associations");
 const auth = require("../middleware/auth");
 
 // Создание опроса
@@ -161,6 +161,34 @@ router.post("/:pollId/vote", auth, async (req, res) => {
 
   } catch (err) {
     console.error(err);
+    res.status(500).json({ message: "Ошибка сервера" });
+  }
+});
+router.get("/:pollId/votes", async (req, res) => {
+  try {
+    const { pollId } = req.params;
+
+    const poll = await Poll.findByPk(pollId);
+    if (!poll) return res.status(404).json({ message: "Опрос не найден" });
+
+    // Анонимный опрос — возвращаем пустой объект
+    if (poll.isAnonymous) return res.json({});
+
+    const votes = await PollVote.findAll({
+      where: { pollId },
+      include: [{ model: User, attributes: ["login"], required: false }]
+    });
+
+    const result = {};
+    votes.forEach(v => {
+      const login = v.User ? v.User.login : "Аноним";
+      if (!result[v.optionId]) result[v.optionId] = [];
+      result[v.optionId].push(login);
+    });
+
+    res.json(result);
+  } catch (err) {
+    console.error("Ошибка /polls/:pollId/votes:", err);
     res.status(500).json({ message: "Ошибка сервера" });
   }
 });
