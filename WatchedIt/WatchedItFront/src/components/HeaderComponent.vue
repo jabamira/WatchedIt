@@ -17,12 +17,12 @@
 </div>
 
       <!-- Профиль пользователя -->
-      <div v-else class="relative">
-      <div class="relative">
+<!-- Профиль пользователя -->
+<div v-if="authStore.isAuthenticated" class="relative">
   <button
     @click="toggleDropdown"
     ref="avatarButton"
-    class="flex items-center justify-center h-16 w-26 rounded-full overflow-hidden"
+    class="flex items-center justify-center h-16 w-16 rounded-full overflow-hidden"
   >
     <img
       :src="avatarSrc"
@@ -50,26 +50,6 @@
     </ul>
   </div>
 </div>
-
-
-        <div
-          v-show="dropdownOpen"
-          class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg shadow-lg z-50"
-        >
-          <div class="px-4 py-2 text-sm text-gray-900 dark:text-white">
-            <div class="font-medium">{{ authStore.user?.login }}</div>
-            <div class="text-xs text-gray-500 dark:text-gray-400">{{ authStore.user?.email }}</div>
-          </div>
-          <ul class="py-2 text-sm text-gray-700 dark:text-gray-200">
-            <li>
-              <a @click="nav.NavigateUser" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer">Profile</a>
-            </li>
-            <li>
-              <a @click="logout" class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-600 cursor-pointer">Sign out</a>
-            </li>
-          </ul>
-        </div>
-      </div>
     </div>
   </nav>
 </template>

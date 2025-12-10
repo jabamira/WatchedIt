@@ -44,9 +44,21 @@ router.post("/", auth, async (req, res) => {
 });
 
 // Получение всех опросов
-router.get("/", async (req, res) => {
+function authOptional(req, res, next) {
+  const token = req.cookies.token; // или как у тебя проверка
+  if (!token) return next();
   try {
-    const userId = req.user?.id || null; // если авторизован, узнаем id, иначе null
+    req.user = verifyToken(token); // твоя функция декодирования JWT
+  } catch {
+    req.user = null;
+  }
+  next();
+}
+
+
+router.get("/", authOptional, async (req, res) => {
+  try {
+    const userId = req.user?.id || null;
 
     const polls = await Poll.findAll({
       include: {
@@ -58,9 +70,11 @@ router.get("/", async (req, res) => {
     });
 
     const response = polls.map(poll => {
-      const userVotes = poll.PollOptions
-        .filter(o => o.PollVotes.some(v => v.userId === userId))
-        .map(o => o.id);
+      const userVotes = userId
+        ? poll.PollOptions.filter(o =>
+            o.PollVotes.some(v => v.userId === userId)
+          ).map(o => o.id)
+        : [];
 
       const options = poll.PollOptions.map(o => ({
         id: o.id,
@@ -73,7 +87,7 @@ router.get("/", async (req, res) => {
         question: poll.question,
         isAnonymous: poll.isAnonymous,
         multipleChoice: poll.multipleChoice,
-        userVotes, // будет пустой у неавторизованного
+        userVotes,
         options
       };
     });
@@ -99,22 +113,29 @@ router.post("/:pollId/vote", auth, async (req, res) => {
         include: { model: PollVote, as: "PollVotes" }
       }
     });
+
     if (!poll) return res.status(404).json({ message: "Опрос не найден" });
 
-    const ids = Array.isArray(optionIds) ? optionIds : [optionIds];
+    const ids = Array.isArray(optionIds) ? optionIds : [];
 
-    if (!poll.multipleChoice) {
+    // 🔥 Если пустой массив — стираем голос полностью
+    if (!ids.length) {
       await PollVote.destroy({ where: { pollId, userId } });
-    }
+    } else {
+      // если single — убираем предыдущий голос
+      if (!poll.multipleChoice) {
+        await PollVote.destroy({ where: { pollId, userId } });
+      }
 
-    await Promise.all(
-      ids.map(optionId =>
-        PollVote.findOrCreate({
-          where: { pollId, optionId, userId },
-          defaults: { pollId, optionId, userId }
-        })
-      )
-    );
+      await Promise.all(
+        ids.map(optionId =>
+          PollVote.findOrCreate({
+            where: { pollId, optionId, userId },
+            defaults: { pollId, optionId, userId }
+          })
+        )
+      );
+    }
 
     const options = await PollOption.findAll({
       where: { pollId },
@@ -127,17 +148,17 @@ router.post("/:pollId/vote", auth, async (req, res) => {
       votes: o.PollVotes.length
     }));
 
-    const userVotes = options
+    const updatedUserVotes = options
       .filter(o => o.PollVotes.some(v => v.userId === userId))
       .map(o => o.id);
 
-    // Отправляем обновление всем, но userVotes для фронта отдельного пользователя
     const io = req.app.get("io");
     if (io) {
       io.emit("poll:vote", { pollId: poll.id, results });
     }
 
-    res.json({ pollId: poll.id, results, userVotes });
+    res.json({ pollId: poll.id, results, userVotes: updatedUserVotes });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Ошибка сервера" });

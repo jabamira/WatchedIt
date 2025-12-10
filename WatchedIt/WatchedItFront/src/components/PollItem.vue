@@ -38,18 +38,30 @@ const props = defineProps({
 
 const store = usePollStore();
 
-function select(optionId) {
+async function select(optionId) {
   if (!props.isAuthenticated) return;
 
   const current = store.userVotes[props.poll.id] || [];
 
-  let newSelection = props.poll.multipleChoice
-    ? (current.includes(optionId)
-      ? current.filter(id => id !== optionId)
-      : [...current, optionId])
-    : [optionId];
+  let newSelection;
 
-  store.vote(props.poll.id, newSelection);
+  if (props.poll.multipleChoice) {
+    // Добавление или снятие отдельно
+    if (current.includes(optionId)) {
+      newSelection = current.filter(id => id !== optionId); // снимаем только этот вариант
+    } else {
+      newSelection = [...current, optionId]; // добавляем
+    }
+  } else {
+    // Single choice — если повторно нажал по выбранному → снимаем голос
+    newSelection = current.includes(optionId) ? [] : [optionId];
+  }
+
+  // Сразу обновляем локально для UI
+  store.userVotes[props.poll.id] = [...newSelection];
+
+  // Отправляем на сервер
+  await store.vote(props.poll.id, newSelection);
 }
 </script>
 <style scoped>
